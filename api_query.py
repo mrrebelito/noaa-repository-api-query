@@ -1,59 +1,39 @@
 import requests
 
 class Query:
+    """Query class used to interact with NOAA Repository JSON API"""
+
     url = "https://repository.library.noaa.gov/fedora/export/view/collection/"
+    # dictionary containing NOAA Repository collections and associated PIDS
+    pid_dict = { "National Environmental Policy Act (NEPA)" : "3",
+                "Deepwater Horizon Materials" : "3",
+                "Coral Reef Conservation Program (CRCP)" : "3",
+                "Ocean Exploration Program" : "4",
+                "National Marine Fisheries Service (NMFS)" : "5",
+                "National Weather Service (NWS)": "6",
+                "Office of Oceanic and Atmospheric Research (OAR)" : "7",
+                "National Ocean Service (NOS)" : "8",                
+                "National Environmental Satellite and Data Information Service (NESDIS)" : "9",
+                "Sea Grant Publications" : "11",
+                "Education and Outreach" : "12",
+                "NOAA General Documents" : "10031",
+                "NOAA International Agreements" : "11879",
+                "Office of Marine and Aviation Operations (OMAO)" : "16402"
+            }
 
     def __init__(self):
         self.pid = ''
 
     def get_collection_pid(self, collection):
-        if collection == "National Environmental Policy Act (NEPA)":
-            self.pid = '1'
-            return self.pid
-        elif collection == "Deepwater Horizon Materials":
-            self.pid = '2'
-            return self.pid
-        elif collection == "Coral Reef Conservation Program (CRCP)":
-            self.pid = '3'
-            return self.pid
-        elif collection == "Ocean Exploration Program":
-            self.pid = '4'
-            return self.pid
-        elif collection == "National Marine Fisheries Service (NMFS)":
-            self.pid = '5'
-            return self.pid
-        elif collection == "National Weather Service (NWS)":
-            self.pid = '6'
-            return self.pid
-        elif collection == "Office of Oceanic and Atmospheric Research (OAR)":
-            self.pid = '7'
-            return self.pid
-        elif collection == "National Ocean Service (NOS)":
-            self.pid = '8'
-            return self.pid
-        elif collection == "National Environmental Satellite and Data Information Service (NESDIS)":
-            self.pid =  '9'
-            return self.pid
-        elif collection == "Sea Grant Publications":
-            self.pid = '11'
-            return self.pid
-        elif collection == "Education and Outreach":
-            self.pid = '12'
-            return self.pid
-        elif collection == "NOAA General Documents":
-            self.pid = '10031'
-            return self.pid
-        elif collection == "NOAA International Agreements":
-            self.pid = '11879'
-            return self.pid  
-        elif collection == "Office of Marine and Aviation Operations (OMAO)":
-            self.pid = '16402'
-            return self.pid    
+        for key in self.pid_dict.keys():
+            if key == collection:
+                self.pid = self.pid_dict[key]
+                return self.pid  
 
     def query_collection(self,pid):
         """Query collection twice. With first query, query without rows for
-        the purpose of retrieving row information. With second query add row information
-        to url to retrieve all rows
+        the purpose of retrieving row number from requestHeader.
+        With second query add row information to url to retrieve all rows.
         """
         #first query
         full_url = self.url + pid + '?rows=0'
@@ -74,7 +54,11 @@ class Query:
         return json_data
 
     def query_collection_by_title_and_link(self,collection):
-        title = [row['mods.title'] for row in collection['response']['docs'] if not None]
+        try:
+            title = [row['mods.title'] for row in collection['response']['docs']]
+        except:
+            title = "No title listed"
+
         PID = [row['PID'] for row in collection['response']['docs']]
         link = [record.replace('noaa:',\
             'https://repository.library.noaa.gov/view/noaa/') for record in PID]
@@ -84,6 +68,13 @@ class Query:
             title_link.append([t, l])
 
         return title_link
+
+    def query_all_collections(pid):
+        """ Select all collections"""
+        pids = self.pid_dict.values()
+        for pid in pids:
+            collections = query_collection(pid)
+            collections['response']['docs']
 
 if __name__ == "__main__":
     q = Query()

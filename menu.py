@@ -89,7 +89,7 @@ Query NOAA Resposistory JSON REST API
                 fh.writerow([t,l])
 
         print("")
-        print("CSV file created: " + csvdata)
+        print("CSV file created: " + csvfile)
 
     def quit(self):
         print("")
