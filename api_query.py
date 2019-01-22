@@ -5,8 +5,9 @@ class Query:
 
     url = "https://repository.library.noaa.gov/fedora/export/view/collection/"
     # dictionary containing NOAA Repository collections and associated PIDS
-    pid_dict = { "National Environmental Policy Act (NEPA)" : "3",
-                "Deepwater Horizon Materials" : "3",
+    pid_dict = { 
+                "National Environmental Policy Act (NEPA)" : "1",
+                "Deepwater Horizon Materials" : "2",
                 "Coral Reef Conservation Program (CRCP)" : "3",
                 "Ocean Exploration Program" : "4",
                 "National Marine Fisheries Service (NMFS)" : "5",
@@ -68,14 +69,7 @@ class Query:
             title_link.append([t, l])
 
         return title_link
-
-    def query_all_collections(pid):
-        """ Select all collections"""
-        pids = self.pid_dict.values()
-        for pid in pids:
-            collections = query_collection(pid)
-            collections['response']['docs']
-
+            
 if __name__ == "__main__":
     q = Query()
     pid = q.get_collection_pid('NOAA International Agreements')
