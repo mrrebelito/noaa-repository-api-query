@@ -7,9 +7,9 @@ class Query:
     # dictionary containing NOAA Repository collections and associated PIDS
     pid_dict = { 
                 "National Environmental Policy Act (NEPA)" : "1",
-                "Deepwater Horizon Materials" : "2",
+                "Deepwater Horizon Materials (DWH)" : "2",
                 "Coral Reef Conservation Program (CRCP)" : "3",
-                "Ocean Exploration Program" : "4",
+                "Ocean Exploration Program (OER)" : "4",
                 "National Marine Fisheries Service (NMFS)" : "5",
                 "National Weather Service (NWS)": "6",
                 "Office of Oceanic and Atmospheric Research (OAR)" : "7",
@@ -55,21 +55,33 @@ class Query:
         return json_data
 
     def query_collection_by_title_and_link(self,collection):
-        try:
-            title = [row['mods.title'] for row in collection['response']['docs']]
-        except:
-            title = "No title listed"
-
+        title_list = []
+        for row in collection['response']['docs']:
+            try:
+                title = row['mods.title']
+                title_list.append(title)
+            except KeyError:
+                title = ['No title, check IR']
+                title_list.append(title)
+            
         PID = [row['PID'] for row in collection['response']['docs']]
         link = [record.replace('noaa:',\
-            'https://repository.library.noaa.gov/view/noaa/') for record in PID]
+            'https://repository.library.noaa.gov/view/noaa/')\
+            for record in PID]
 
         title_link = []
-        for t,l in zip(title, link):
+        for t,l in zip(title_list, link):
             title_link.append([t, l])
 
         return title_link
-            
+
+    def get_collections(self):
+        """Get all collections data from IR. Utilize generator 
+        function to continually call function to retrieve all
+        collections."""
+        for collection in self.pid_dict.values():
+            yield self.query_collection(collection)          
+        
 if __name__ == "__main__":
     q = Query()
     pid = q.get_collection_pid('NOAA International Agreements')

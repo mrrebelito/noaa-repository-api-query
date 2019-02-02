@@ -1,6 +1,6 @@
-# Python tool for querying NOAA Institutional Repository JSON API
+# Python tool for querying NOAA Institutional Repository (IR) JSON API
 
-Once files are downloaded, tool provides a menu to view or individual collections. All packages used within the files are builtins, with the exception of requests.
+Once files are downloaded, tool provides a menu to view or individual collections as well as download all items from IR. All packages used within the files are builtins, with the exception of requests.
 
 ## Usage
 
@@ -10,8 +10,15 @@ Download api_query.py and menu.py into a directory. Run:
 
 If there is no issue, you should be greeted with the following:
 
-```1. View JSON collection data
-2. Get JSON of collection data 
-3. Get CSV of collection (by title and link)
-4. Quit
 ```
+ Query NOAA Resposistory JSON REST API
+
+    1. View JSON collection data
+    2. Get JSON of collection data 
+    3. Get CSV of collection (by title and link)
+    4. Get CSV of all items (by title and link)
+    5. Quit
+
+```
+
+NOTE: if selecting the option to get all items from the IR (4), two CSVs will result as output (noaa_collections_YYYY_MM_DD.csv and deduped_noaa_collections_YYYY_MM_DD.csv). "deduped_noaa_collections_YYYY_MM_DD.csv" is the final that contains the correct item count. 
