@@ -4,7 +4,7 @@ Once files are downloaded, tool provides a menu to view or individual collection
 
 ## Usage
 
-Download api_query.py and menu.py into a directory. Run:
+Download api_query.py and menu.py and place in the same. Run the following in shell:
 
 ```python menu.py ```
 

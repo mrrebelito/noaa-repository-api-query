@@ -4,8 +4,22 @@ import csv
 import json
 from datetime import datetime
 
+""" 
+Module used to provide an interactive command-line menu api_query.py 
+module.py
+
+Contains Menu class which will return IR collection data in the form 
+of a CSV or JSON file in the following ways: 
+1) individual collections via JSON
+2) individual collections (title and item link) via CSV
+3) all collections (title and item link) via CSV
+"""
+
+
 class Menu:
-    '''Display a menu and respond to choices when run.'''
+    """
+    Display a menu and respond to choices when run method is executed.
+    """
     def __init__(self):
         self.api = Query()
         self.choices = {
@@ -28,7 +42,9 @@ Query NOAA Resposistory JSON REST API
     """)
 
     def run(self):
-        '''Call method on Menu class to display the menu and respond to choices.'''
+        """
+        Call method on Menu class to display the menu and respond to choices.
+        """
         while True:
             self.display_menu()
             choice = input("Enter an option: ")
@@ -60,6 +76,10 @@ Query NOAA Resposistory JSON REST API
         print("")  
         
     def view_collection_data(self):
+        """
+        Method used to select collection once data pull decision
+        has been made. 
+        """
         self.collections()
         collection = input("Select a collection: ")
         data = self.api.query_collection(collection)
@@ -67,6 +87,9 @@ Query NOAA Resposistory JSON REST API
         print("")
 
     def get_JSON_of_collection_data(self):
+        """
+        Method returns individually selected collection in form of JSON. 
+        """
         self.collections()
         collection = input("Select a collection: ")
         data = self.api.query_collection(collection)
@@ -81,6 +104,10 @@ Query NOAA Resposistory JSON REST API
         print("JSON file created: " + jsonfile)
 
     def get_csv_of_collection_titles(self):
+        """
+        Method returns individually selected collection in form of CSV
+        which includes fields for title and item link.
+        """
         self.collections()
         collection = input("Select a collection: ")
         data = self.api.query_collection(collection)
@@ -98,7 +125,8 @@ Query NOAA Resposistory JSON REST API
         print("CSV file created: " + csvfile)
 
     def get_csv_of_all_items(self):
-        """Method creates a deduplicated title and link list of all items in the IR.
+        """
+        Method creates a deduplicated title and link list of all items in the IR.
         """
         # calls api.get method which call JSON API to retrieve all collections
         data = self.api.get_collections()    

@@ -1,5 +1,16 @@
 import requests
 
+""" 
+Module used to query NOAA Institutional Repository.
+
+Contains Query class which will return IR collection data in the 
+following ways: 
+1) individual collections via JSON
+2) individual collections (title and item link) via list of lists
+3) all collections via JSON
+"""
+
+
 class Query:
     """Query class used to interact with NOAA Repository JSON API"""
 
@@ -26,15 +37,20 @@ class Query:
         self.pid = ''
 
     def get_collection_pid(self, collection):
+        """
+        Taking collection name as argument, returns collection's
+        pid.
+        """
         for key in self.pid_dict.keys():
             if key == collection:
                 self.pid = self.pid_dict[key]
                 return self.pid  
 
     def query_collection(self,pid):
-        """Query collection twice. With first query, query without rows for
-        the purpose of retrieving row number from requestHeader.
-        With second query add row information to url to retrieve all rows.
+        """
+        Collection is queried twice. First query returns row number.
+        Second query utilizes row information to return url
+        to retrieve all rows.
         """
         #first query
         full_url = self.url + pid + '?rows=0'
@@ -55,6 +71,10 @@ class Query:
         return json_data
 
     def query_collection_by_title_and_link(self,collection):
+        """
+        Individual collection is iterated over to return
+        title and item link in form of list of lists.
+        """
         title_list = []
         for row in collection['response']['docs']:
             try:
@@ -76,9 +96,14 @@ class Query:
         return title_link
 
     def get_collections(self):
-        """Get all collections data from IR. Utilize generator 
-        function to continually call function to retrieve all
-        collections."""
+        """ 
+        Get all collection data from IR using collection name and PID 
+        dictionary. 
+        
+        Utilize generator function to call function to
+        retrieve all IR collections.
+        
+        Collection data is returned in JSON format."""
         for collection in self.pid_dict.values():
             yield self.query_collection(collection)          
         
@@ -90,4 +115,4 @@ if __name__ == "__main__":
 
     records = q.query_collection_by_title_and_link(collection)
     for record in records:
-         print(record[1])
+        print(record)
