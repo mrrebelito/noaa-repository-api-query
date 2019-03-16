@@ -20,5 +20,3 @@ If there is no issue, you should be greeted with the following:
     5. Quit
 
 ```
-
-NOTE: if selecting the option to get all items from the IR (4), two CSVs will result as output (noaa_collections_YYYY_MM_DD.csv and deduped_noaa_collections_YYYY_MM_DD.csv). "deduped_noaa_collections_YYYY_MM_DD.csv" is the final that contains the correct item count. 

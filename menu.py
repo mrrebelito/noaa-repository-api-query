@@ -1,8 +1,9 @@
-from api_query import Query
+import os
 import sys
 import csv
 import json
 from datetime import datetime
+from api_query import Query
 
 """ 
 Module used to provide an interactive command-line menu api_query.py 
@@ -132,25 +133,19 @@ Query NOAA Resposistory JSON REST API
         data = self.api.get_collections()    
         csvfile = "noaa_collections_" +datetime.now().strftime("%Y_%m_%d")\
             + ".csv"
-        deduped_csvfile = "deduped_noaa_collections_" +datetime.now().\
+        deduped_csvfile = "noaa_collections_final_" +datetime.now().\
             strftime("%Y_%m_%d")+ ".csv"     
         with open(csvfile, 'w', newline='') as fw:
             writer = csv.writer(fw, delimiter='\t')
             for collection in data:
-                title = self.api.query_collection_by_title_and_link(collection)
-                for t,l in title:
+                title_link = self.api.query_collection_by_title_and_link(collection)
+                for t,l in title_link:
                     writer.writerow([t,l])
 
-        with open(csvfile, 'r', newline='') as fr:
-            reader = csv.reader(fr,delimiter='\t')
-            with open(deduped_csvfile, "w") as fw:
-                wf = csv.writer(fw, delimiter='\t')
-                for row in reader:
-                    title_set = set(tuple(x) for x in reader)
-                    title_list = [list(x) for x in title_set]
-                    wf.writerow(["Title", "Link"])
-                    for t,l in title_list:
-                        wf.writerow([t,l])
+        # deduplicate files
+        f = set(open(csvfile).readlines())
+        open(deduped_csvfile,'w').writelines(f)
+        os.remove(csvfile)
 
         print("")
         print("CSV file created: " + deduped_csvfile)
