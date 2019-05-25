@@ -1,3 +1,7 @@
 .DS_STORE
 __pycache
 *.pyc
+*.csv
+README.md
+requirements.txt
+*.json

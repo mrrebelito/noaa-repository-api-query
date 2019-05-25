@@ -46,6 +46,7 @@ class Query:
                 self.pid = self.pid_dict[key]
                 return self.pid  
 
+
     def query_collection(self,pid):
         """
         Collection is queried twice. First query returns row number.
@@ -53,13 +54,14 @@ class Query:
         to retrieve all rows.
         """
         #first query
-        full_url = self.url + pid + '?rows=0'
+        full_url = self.url + pid
         r = requests.get(full_url)
         status = r.status_code 
         if status != 200:
             return 'Request not successful. Try again'
         json_data = r.json()
         rows = json_data['response']['numFound']
+        
         #second query
         full_url = self.url + pid + '?rows=' + str(rows)
         r = requests.get(full_url)
@@ -69,6 +71,7 @@ class Query:
         json_data = r.json()
 
         return json_data
+
 
     def query_collection_by_title_and_link(self,collection):
         """
@@ -95,6 +98,7 @@ class Query:
 
         return title_link
 
+
     def get_collections(self):
         """ 
         Get all collection data from IR using collection name and PID 
@@ -105,14 +109,12 @@ class Query:
         
         Collection data is returned in JSON format."""
         for collection in self.pid_dict.values():
-            yield self.query_collection(collection)          
+            yield self.query_collection(collection)  
+
         
 if __name__ == "__main__":
+    # example
     q = Query()
     pid = q.get_collection_pid('NOAA International Agreements')
     print(pid)
     collection = q.query_collection(pid)
-
-    records = q.query_collection_by_title_and_link(collection)
-    for record in records:
-        print(record)

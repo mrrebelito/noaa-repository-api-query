@@ -28,7 +28,7 @@ class Menu:
                 "2": self.get_JSON_of_collection_data,
                 "3": self.get_csv_of_collection_titles,
                 "4": self.get_csv_of_all_items,
-                "5": self.quit
+                "5": self.exit_menu
                 }
 
     def display_menu(self):
@@ -136,11 +136,12 @@ Query NOAA Resposistory JSON REST API
         deduped_csvfile = "noaa_collections_final_" +datetime.now().\
             strftime("%Y_%m_%d")+ ".csv"     
         with open(csvfile, 'w', newline='') as fw:
-            writer = csv.writer(fw, delimiter='\t')
+            fh = csv.writer(fw, delimiter='\t')
+            fh.writerow(["Title", "Link"])
             for collection in data:
                 title_link = self.api.query_collection_by_title_and_link(collection)
                 for t,l in title_link:
-                    writer.writerow([t,l])
+                    fh.writerow([t,l])
 
         # deduplicate files
         f = set(open(csvfile).readlines())
@@ -150,11 +151,12 @@ Query NOAA Resposistory JSON REST API
         print("")
         print("CSV file created: " + deduped_csvfile)
 
-    def quit(self):
+    def exit_menu(self):
         print("")
-        print("Goodbye.")
+        print("Bye Bye.")
         print("")
-        sys.exit(0)
+        os._exit(0)
+        
 
 if __name__ == "__main__":
    m = Menu()
