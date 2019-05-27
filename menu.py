@@ -90,6 +90,8 @@ Query NOAA Resposistory JSON REST API
     def get_JSON_of_collection_data(self):
         """
         Method returns individually selected collection in form of JSON. 
+
+        JSON is wrapped with 'records' tag
         """
         self.collections()
         collection = input("Select a collection: ")
@@ -98,8 +100,13 @@ Query NOAA Resposistory JSON REST API
         jsonfile = "noaa_json_" +datetime.now().strftime("%Y_%m_%d")\
             + ".json"
         with open(jsonfile, 'w') as f:
-            for record in data['response']['docs']:
-                json.dump(record,f, indent=4, sort_keys=True)
+            f.write('{ "records": [\n')
+            # use enumerate to determine when records begin
+            for num, record in enumerate(data['response']['docs']):
+                if num > 0:
+                    f.write(',\n')
+                json.dump(record,f, indent=4, sort_keys=True) 
+            f.write(']}')
 
         print("")
         print("JSON file created: " + jsonfile)
@@ -137,7 +144,6 @@ Query NOAA Resposistory JSON REST API
             strftime("%Y_%m_%d")+ ".csv"     
         with open(csvfile, 'w', newline='') as fw:
             fh = csv.writer(fw, delimiter='\t')
-            fh.writerow(["Title", "Link"])
             for collection in data:
                 title_link = self.api.query_collection_by_title_and_link(collection)
                 for t,l in title_link:
