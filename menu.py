@@ -96,11 +96,15 @@ Query NOAA Resposistory JSON REST API
         self.collections()
         collection = input("Select a collection: ")
         data = self.api.query_collection(collection)
+        collection_name = [k for k,v in self.api.pid_dict.items() if v == 
+            str(collection)][0]
+        print(collection_name)
 
         jsonfile = "noaa_json_" +datetime.now().strftime("%Y_%m_%d")\
             + ".json"
         with open(jsonfile, 'w') as f:
             f.write('{ "records": [\n')
+            f.write('"collection: ' + collection_name + '",\n')
             # use enumerate to determine when records begin
             for num, record in enumerate(data['response']['docs']):
                 if num > 0:
