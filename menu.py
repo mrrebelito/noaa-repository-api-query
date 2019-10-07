@@ -3,7 +3,7 @@ import sys
 import csv
 import json
 from datetime import datetime
-from api_query import Query
+from api_query import RepositoryQuery, DataExporter
 
 """ 
 Module used to provide an interactive command-line menu api_query.py 
@@ -18,28 +18,29 @@ of a CSV or JSON file in the following ways:
 
 
 class Menu:
+
+    data_info_json = datetime.now().strftime("%Y_%m_%d") + ".json"
+    date_info_csv = datetime.now().strftime("%Y_%m_%d") + ".csv"
+
     """
     Display a menu and respond to choices when run method is executed.
     """
     def __init__(self):
-        self.api = Query()
+        self.query = RepositoryQuery()
+        self.export = DataExporter()
         self.choices = {
-                "1": self.view_collection_data,
-                "2": self.get_JSON_of_collection_data,
-                "3": self.get_csv_of_collection_titles,
-                "4": self.get_csv_of_all_items,
-                "5": self.exit_menu
+                "1": self.get_csv_of_collection_titles,
+                "2": self.get_csv_of_all_items,
+                "3": self.exit_menu
                 }
 
     def display_menu(self):
         print("""
 Query NOAA Resposistory JSON REST API
 
-    1. View JSON collection data
-    2. Get JSON of collection data 
-    3. Get CSV of collection
-    4. Get CSV of all items
-    5. Quit
+    1. Get CSV of collection
+    2. Get CSV of all items
+    3. Quit
     """)
 
     def run(self):
@@ -76,90 +77,27 @@ Query NOAA Resposistory JSON REST API
         print("Office of Marine and Aviation Operations (OMAO): 16402")
         print("")  
         
-    def view_collection_data(self):
-        """
-        Method used to select collection once data pull decision
-        has been made. 
-        """
-        self.collections()
-        collection = input("Select a collection: ")
-        data = self.api.get_json(collection)
-        print(json.dumps(data,indent=4))
-        print("")
-
-    def get_JSON_of_collection_data(self):
-        """
-        Method returns individually selected collection in form of JSON. 
-
-        JSON is wrapped with 'records' tag
-        """
-        self.collections()
-        collection = input("Select a collection: ")
-        data = self.api.get_json(collection)
-        collection_name = [k for k,v in self.api.pid_dict.items() if v == 
-            str(collection)][0]
-        print(collection_name)
-
-        jsonfile = "noaa_json_" +datetime.now().strftime("%Y_%m_%d")\
-            + ".json"
-        with open(jsonfile, 'w') as f:
-            f.write('{ "records": [\n')
-            f.write('"collection: ' + collection_name + '",\n')
-            # use enumerate to determine when records begin
-            for num, record in enumerate(data['response']['docs']):
-                if num > 0:
-                    f.write(',\n')
-                json.dump(record,f, indent=4, sort_keys=True) 
-            f.write(']}')
-
-        print("")
-        print("JSON file created: " + jsonfile)
-
     def get_csv_of_collection_titles(self):
         """
         Method returns individually selected collection in form of CSV
         which includes fields for title and item link.
         """
         self.collections()
-        collection = input("Select a collection: ")
-        data = self.api.get_json(collection)
-        title_link = self.api.query_collection(data)
+        collection_pid = input("Select a collection: ")
         
-        csvfile = "noaa_titles_" +datetime.now().strftime("%Y_%m_%d")\
-            + ".csv"
-        with open(csvfile, 'w', newline='') as f:
-            fh = csv.writer(f, delimiter='\t')
-            fh.writerow(["Title", "Link"])
-            for t,l in title_link:
-                fh.writerow([t,l])
+        # export collection
+        self.export.export_collection(self.query, collection_pid)
 
-        print("")
-        print("CSV file created: " + csvfile)
 
     def get_csv_of_all_items(self):
         """
         Method creates a deduplicated title and link list of all items in the IR.
         """
         # calls api.get method which call JSON API to retrieve all collections
-        data = self.api.get_collections()    
-        csvfile = "noaa_collections_" +datetime.now().strftime("%Y_%m_%d")\
-            + ".csv"
-        deduped_csvfile = "noaa_collections_final_" +datetime.now().\
-            strftime("%Y_%m_%d")+ ".csv"     
-        with open(csvfile, 'w', newline='') as fw:
-            fh = csv.writer(fw, delimiter='\t')
-            for collection in data:
-                title_link = self.api.query_collection_by_title_and_link(collection)
-                for t,l in title_link:
-                    fh.writerow([t,l])
-
-        # deduplicate files
-        f = set(open(csvfile).readlines())
-        open(deduped_csvfile,'w').writelines(f)
-        os.remove(csvfile)
-
-        print("")
-        print("CSV file created: " + deduped_csvfile)
+        
+        # export all collections
+        self.export.export_all_collections(self.query,
+            self.query.get_all_collections())
 
     def exit_menu(self):
         print("")
