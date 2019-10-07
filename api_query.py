@@ -44,14 +44,16 @@ class Query:
         for key in self.pid_dict.keys():
             if key == collection:
                 self.pid = self.pid_dict[key]
-                return self.pid  
+                return self.pid
 
 
-    def query_collection(self,pid):
+    def get_json(self,pid):
         """
         Collection is queried twice. First query returns row number.
         Second query utilizes row information to return url
         to retrieve all rows.
+
+        Cehcks status of requests both times. 
         """
         #first query
         full_url = self.url + pid
@@ -73,29 +75,21 @@ class Query:
         return json_data
 
 
-    def query_collection_by_title_and_link(self,collection):
+    def query_collection(self,collection):
         """
         Individual collection is iterated over to return
         title and item link in form of list of lists.
         """
-        title_list = []
+        title_link = []
         for row in collection['response']['docs']:
+            link = row['PID'].replace('noaa:', self.url)
             try:
                 title = row['mods.title']
-                title_list.append(title)
             except KeyError:
-                title = ['No title, check IR']
-                title_list.append(title)
+                title = ''
             
-        PID = [row['PID'] for row in collection['response']['docs']]
-        link = [record.replace('noaa:',\
-            'https://repository.library.noaa.gov/view/noaa/')\
-            for record in PID]
-
-        title_link = []
-        for t,l in zip(title_list, link):
-            title_link.append([t, l])
-
+            title_link.append([link,title])
+            
         return title_link
 
 
@@ -111,10 +105,23 @@ class Query:
         for collection in self.pid_dict.values():
             yield self.query_collection(collection)  
 
-        
+
+
 if __name__ == "__main__":
+    import csv
     # example
     q = Query()
     pid = q.get_collection_pid('NOAA International Agreements')
-    print(pid)
-    collection = q.query_collection(pid)
+    data = q.get_collections()
+    # count = 0
+    # with open('IR-collections.csv','w',newline='') as f:
+    #     fh = csv.writer(f,delimiter='|')
+    #     fh.writerow(["Collection Number", "Title", "Link","PID"])
+    #     for collection in data:
+    #         title_link = q.query_collection(collection)
+    #         count += 1
+    #         for t,l in title_link:
+    #             pi = l.replace('https://repository.library.noaa.gov/view/noaa/','')
+    #             fh.writerow([str(count),t,l,pi])
+
+                

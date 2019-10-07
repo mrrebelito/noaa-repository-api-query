@@ -37,8 +37,8 @@ Query NOAA Resposistory JSON REST API
 
     1. View JSON collection data
     2. Get JSON of collection data 
-    3. Get CSV of collection (by title and link)
-    4. Get CSV of all items (by title and link)
+    3. Get CSV of collection
+    4. Get CSV of all items
     5. Quit
     """)
 
@@ -83,7 +83,7 @@ Query NOAA Resposistory JSON REST API
         """
         self.collections()
         collection = input("Select a collection: ")
-        data = self.api.query_collection(collection)
+        data = self.api.get_json(collection)
         print(json.dumps(data,indent=4))
         print("")
 
@@ -95,7 +95,7 @@ Query NOAA Resposistory JSON REST API
         """
         self.collections()
         collection = input("Select a collection: ")
-        data = self.api.query_collection(collection)
+        data = self.api.get_json(collection)
         collection_name = [k for k,v in self.api.pid_dict.items() if v == 
             str(collection)][0]
         print(collection_name)
@@ -122,8 +122,8 @@ Query NOAA Resposistory JSON REST API
         """
         self.collections()
         collection = input("Select a collection: ")
-        data = self.api.query_collection(collection)
-        title_link = self.api.query_collection_by_title_and_link(data)
+        data = self.api.get_json(collection)
+        title_link = self.api.query_collection(data)
         
         csvfile = "noaa_titles_" +datetime.now().strftime("%Y_%m_%d")\
             + ".csv"
