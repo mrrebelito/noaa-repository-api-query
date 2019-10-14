@@ -86,7 +86,7 @@ Query NOAA Resposistory JSON REST API
         collection_pid = input("Select a collection: ")
         
         # export collection
-        self.export.export_collection(self.query, collection_pid)
+        self.export.export_collection_as_csv(self.query, collection_pid)
 
 
     def get_csv_of_all_items(self):
@@ -96,7 +96,7 @@ Query NOAA Resposistory JSON REST API
         # calls api.get method which call JSON API to retrieve all collections
         
         # export all collections
-        self.export.export_all_collections(self.query,
+        self.export.export_all_collections_as_csv(self.query,
             self.query.get_all_collections())
 
     def exit_menu(self):

@@ -11,7 +11,7 @@ following ways:
 2) all collections in CSV
 """
 
-class RepositoryQuery:
+class RepositoryQuery():
     """Query class used to interact with NOAA Repository JSON API"""
 
     api_url = "https://repository.library.noaa.gov/fedora/export/view/collection/"
@@ -82,17 +82,21 @@ class RepositoryQuery:
         Individual collection is iterated over to return
         title and item link in form of list of lists.
         """
-        title_link = []
+        collection_info = []
         for row in collection['response']['docs']:
             link = row['PID'].replace('noaa:', self.item_url)
             try:
                 title = row['mods.title']
             except KeyError:
                 title = ''
+            try:
+                doc_type = row['mods.type_of_resource'][0]
+            except KeyError:
+                doc_type = ''
             
-            title_link.append([link,title])
+            collection_info.append([link,title, doc_type])
             
-        return title_link
+        return collection_info
 
 
     def get_all_collections(self):
@@ -109,61 +113,56 @@ class RepositoryQuery:
 
 
 class DataExporter():
+    """Class for exporting data. """
 
-    data_info_json = datetime.now().strftime("%Y_%m_%d") + ".json"
-    date_info_csv = datetime.now().strftime("%Y_%m_%d") + ".csv"
+    date_info = datetime.now().strftime("%Y_%m_%d") + ".csv"
+    headers = ['link', 'title', 'doc_type']
 
-    def export_collection(self, repository_query, collection):
+    def export_collection_as_csv(self, repository_query, collection):
         """
-        Method returns individually selected collection in form of CSV
-        which includes fields for title and item link.
+        DataExporter Method returns individually selected collection in 
+        form of CSV which includes fields for title and item link.
 
         params include ReposistoryQuery class, collection pid (accessed
         through ReposistoryQuery .pid method)
         """
         
         data = repository_query.get_json(collection)
-        title_link = repository_query.get_collection(data)
+        records = repository_query.get_collection(data)
         
-        csvfile = "noaa_collection_" + self.date_info_csv
-        with open(csvfile, 'w', newline='') as f:
-            fh = csv.writer(f, delimiter='\t')
-            fh.writerow(["Title", "Link"])
-            for t,l in title_link:
-                fh.writerow([t,l])
-
-        print("")
-        print("CSV file created: " + csvfile)
+        collection_file = "noaa_collection_" + self.date_info
+        with open(collection_file, 'w', newline='') as fh:
+            csvfile = csv.writer(fh, delimiter=',')
+            csvfile.writerow(self.headers)
+            for row in records:
+                csvfile.writerow(row)
 
 
-    def export_all_collections(self, repository_query, collection_data):
+    def export_all_collections_as_csv(self, repository_query, collection_data):
         """
-        Method creates a deduplicated title and link list of all items in 
-        the IR.
+        DataExporter method creates a deduplicated title and link list of all 
+        items in the IR.
 
         params include ReposistoryQuery class, and RepositoryQuery 
         .get_all_collections method
         """
         # calls api.get method which call JSON API to retrieve all collections 
-        csvfile = "noaa_collections_" + self.date_info_csv
-        deduped_csvfile = "noaa_collections_final_" + self.date_info_csv     
-        with open(csvfile, 'w', newline='') as fw:
-            fh = csv.writer(fw, delimiter='\t')
+        collections_file = "noaa_collections_" + self.date_info
+        deduped_collections_file = "noaa_collections_final_" + self.date_info     
+        with open(collections_file, 'w', newline='') as fh:
+            csvfile = csv.writer(fh, delimiter=',')
             for collection in collection_data:
                 # call RepositoryQuery 
-                title_link = repository_query.get_collection(collection)
-                for t,l in title_link:
-                    fh.writerow([t,l])
+                records = repository_query.get_collection(collection)
+                for row in records:
+                    csvfile.writerow(row)
 
         # deduplicate files
-        f = set(open(csvfile).readlines())
-        open(deduped_csvfile,'w').writelines(f)
-        os.remove(csvfile)
-
-        print("")
-        print("CSV file created: " + deduped_csvfile)        
-
-
+        f = list(set(open(collections_file,encoding='utf-8').readlines()))
+        f.insert(0,','.join(self.headers) + '\n')
+        open(deduped_collections_file,'w', encoding='utf-8').writelines(f)
+        os.remove(collections_file)
+      
 
 if __name__ == "__main__":
     import csv
@@ -172,5 +171,5 @@ if __name__ == "__main__":
     pid = q.get_collection_pid('NOAA International Agreements')
     de = DataExporter()
     # de.export_collection(q, q.pid)
-    de.export_all_collections(q,q.get_all_collections())
+    de.export_all_collections_as_csv(q,q.get_all_collections())
                 
