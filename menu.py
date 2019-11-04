@@ -75,6 +75,7 @@ Query NOAA Resposistory JSON REST API
         print("NOAA General Documents: 10031")
         print("NOAA International Agreements: 11879")
         print("Office of Marine and Aviation Operations (OMAO): 16402")
+        print("Integrated Ecosystem Assessment (IEA): 22022")
         print("")  
         
     def get_csv_of_collection_titles(self):

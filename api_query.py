@@ -14,7 +14,7 @@ following ways:
 class RepositoryQuery():
     """Query class used to interact with NOAA Repository JSON API"""
 
-    api_url = "https://repository.library.noaa.gov/fedora/export/view/collection/"
+    api_url = "https://repository.library.noaa.gov/fedora/export/download/collection/"
     item_url = "https://repository.library.noaa.gov/view/noaa/"
 
     # dictionary containing NOAA Repository collections and associated PIDS
@@ -32,7 +32,8 @@ class RepositoryQuery():
                 "Education and Outreach" : "12",
                 "NOAA General Documents" : "10031",
                 "NOAA International Agreements" : "11879",
-                "Office of Marine and Aviation Operations (OMAO)" : "16402"
+                "Office of Marine and Aviation Operations (OMAO)" : "16402",
+                "Integrated Ecosystem Assessment (IEA)":"22022"
             }
 
     def __init__(self):
@@ -51,11 +52,7 @@ class RepositoryQuery():
 
     def get_json(self,pid):
         """
-        Collection is queried twice. First query returns row number.
-        Second query utilizes row information to return url
-        to retrieve all rows.
-
-        Cehcks status of requests both times. 
+        Collection is queried via API, returning JSON.
         """
         #first query
         full_url = self.api_url + pid
@@ -64,16 +61,7 @@ class RepositoryQuery():
         if status != 200:
             return 'Request not successful. Try again'
         json_data = r.json()
-        rows = json_data['response']['numFound']
         
-        #second query
-        full_url = self.api_url + pid + '?rows=' + str(rows)
-        r = requests.get(full_url)
-        status = r.status_code
-        if status != 200:
-            return 'Request not successful. Try again' 
-        json_data = r.json()
-
         return json_data
 
 
@@ -93,8 +81,13 @@ class RepositoryQuery():
                 doc_type = row['mods.type_of_resource'][0]
             except KeyError:
                 doc_type = ''
+            try:
+                facets = row['mods.sm_localcorpname']
+                facets = ';'.join(facets)
+            except KeyError:
+                facets = ''
             
-            collection_info.append([link,title, doc_type])
+            collection_info.append([link,title, doc_type,facets])
             
         return collection_info
 
@@ -116,7 +109,7 @@ class DataExporter():
     """Class for exporting data. """
 
     date_info = datetime.now().strftime("%Y_%m_%d") + ".csv"
-    headers = ['link', 'title', 'doc_type']
+    headers = ['link', 'title', 'doc_type','facets']
 
     def export_collection_as_csv(self, repository_query, collection):
         """
@@ -131,8 +124,8 @@ class DataExporter():
         records = repository_query.get_collection(data)
         
         collection_file = "noaa_collection_" + self.date_info
-        with open(collection_file, 'w', newline='') as fh:
-            csvfile = csv.writer(fh, delimiter=',')
+        with open(collection_file, 'w', newline='', encoding='utf-8') as fh:
+            csvfile = csv.writer(fh, delimiter='|')
             csvfile.writerow(self.headers)
             for row in records:
                 csvfile.writerow(row)
@@ -149,8 +142,8 @@ class DataExporter():
         # calls api.get method which call JSON API to retrieve all collections 
         collections_file = "noaa_collections_" + self.date_info
         deduped_collections_file = "noaa_collections_final_" + self.date_info     
-        with open(collections_file, 'w', newline='') as fh:
-            csvfile = csv.writer(fh, delimiter=',')
+        with open(collections_file, 'w', newline='', encoding='utf-8') as fh:
+            csvfile = csv.writer(fh, delimiter='|')
             for collection in collection_data:
                 # call RepositoryQuery 
                 records = repository_query.get_collection(collection)
@@ -159,7 +152,7 @@ class DataExporter():
 
         # deduplicate files
         f = list(set(open(collections_file,encoding='utf-8').readlines()))
-        f.insert(0,','.join(self.headers) + '\n')
+        f.insert(0,'|'.join(self.headers) + '\n')
         open(deduped_collections_file,'w', encoding='utf-8').writelines(f)
         os.remove(collections_file)
       
@@ -168,8 +161,8 @@ if __name__ == "__main__":
     import csv
     # example
     q = RepositoryQuery()
-    pid = q.get_collection_pid('NOAA International Agreements')
+    # pid = q.get_collection_pid('National Environmental Policy Act (NEPA)')
     de = DataExporter()
-    # de.export_collection(q, q.pid)
+    # de.export_collection_as_csv(q, q.pid)
     de.export_all_collections_as_csv(q,q.get_all_collections())
                 
