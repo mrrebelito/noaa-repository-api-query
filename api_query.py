@@ -74,7 +74,7 @@ class RepositoryQuery():
         for row in collection['response']['docs']:
             link = row['PID'].replace('noaa:', self.item_url)
             try:
-                title = row['mods.title']
+                title = row['mods.title'].replace('\n','')
             except KeyError:
                 title = ''
             try:

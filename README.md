@@ -13,10 +13,10 @@ If there is no issue, you should be greeted with the following:
 ```
  Query NOAA Resposistory JSON REST API
 
-    1. View JSON collection data
-    2. Get JSON of collection data 
-    3. Get CSV of collection (by title and link)
-    4. Get CSV of all items (by title and link)
-    5. Quit
+    1. Get CSV of collection
+    2. Get CSV of all items
+    3. Quit
 
 ```
+
+Or, you can simply use ```api_query.py``` on its own. 
