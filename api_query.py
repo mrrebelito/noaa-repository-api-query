@@ -39,13 +39,15 @@ class RepositoryQuery():
     def __init__(self):
         self.pid = ''
 
-    def get_collection_pid(self, collection):
+    def get_collection_pid(self, collection_name):
         """
-        Taking collection name as argument, returns collection's
+        Method takes collection name as argument, returns collection's
         pid.
+        Parameters:
+            collection: collection name
         """
         for key in self.pid_dict.keys():
-            if key == collection:
+            if key == collection_name:
                 self.pid = self.pid_dict[key]
                 return self.pid
 
@@ -53,6 +55,8 @@ class RepositoryQuery():
     def get_json(self,pid):
         """
         Collection is queried via API, returning JSON.
+        Parameters: 
+            pid: collection pid
         """
         #first query
         full_url = self.api_url + pid
@@ -60,18 +64,18 @@ class RepositoryQuery():
         status = r.status_code 
         if status != 200:
             return 'Request not successful. Try again'
-        json_data = r.json()
+        return r.json()
         
-        return json_data
-
-
-    def get_collection(self,collection):
+    
+    def get_collection_data(self,json_data):
         """
         Individual collection is iterated over to return
         title and item link in form of list of lists.
+        Parameters:
+            json_data: JSON data from an individual collection.
         """
         collection_info = []
-        for row in collection['response']['docs']:
+        for row in json_data['response']['docs']:
             link = row['PID'].replace('noaa:', self.item_url)
             try:
                 title = row['mods.title'].replace('\n','')
@@ -92,15 +96,16 @@ class RepositoryQuery():
         return collection_info
 
 
-    def get_all_collections(self):
+    def get_all_repo_data(self):
         """ 
-        Get all collection data from IR using collection name and PID 
+        Get data all collections in IR using collection name and PID 
         dictionary. 
         
         Utilize generator function to call function to
         retrieve all IR collections.
         
-        Collection data is returned in JSON format."""
+        Collection data is returned in JSON format.
+        """
         for collection in self.pid_dict.values():
             yield self.get_json(collection)  
 
@@ -115,13 +120,13 @@ class DataExporter():
         """
         DataExporter Method returns individually selected collection in 
         form of CSV which includes fields for title and item link.
-
-        params include ReposistoryQuery class, collection pid (accessed
-        through ReposistoryQuery .pid method)
+        Parameters:
+            reposistory_query: ReposistoryQuery class
+            collection: collection pid
         """
         
         data = repository_query.get_json(collection)
-        records = repository_query.get_collection(data)
+        records = repository_query.get_collection_data(data)
         
         collection_file = "noaa_collection_" + self.date_info
         with open(collection_file, 'w', newline='', encoding='utf-8') as fh:
@@ -131,22 +136,27 @@ class DataExporter():
                 csvfile.writerow(row)
 
 
-    def export_all_collections_as_csv(self, repository_query, collection_data):
+    def export_all_collections_as_csv(self, repository_query, repo_data):
         """
         DataExporter method creates a deduplicated title and link list of all 
         items in the IR.
-
-        params include ReposistoryQuery class, and RepositoryQuery 
-        .get_all_collections method
+        Parameters:
+            repository_query: ReposistoryQuery class
+            repo_data: RepositoryQuery get_all_repo_data method, which returns 
+            JSON and then is looped through.
         """
+
         # calls api.get method which call JSON API to retrieve all collections 
         collections_file = "noaa_collections_" + self.date_info
         deduped_collections_file = "noaa_collections_final_" + self.date_info     
+        
         with open(collections_file, 'w', newline='', encoding='utf-8') as fh:
             csvfile = csv.writer(fh, delimiter='|')
-            for collection in collection_data:
-                # call RepositoryQuery 
-                records = repository_query.get_collection(collection)
+
+            # loop through all reposistory data
+            for collection in repo_data:
+                # call RepositoryQuery method get_collection_data
+                records = repository_query.get_collection_data(collection)
                 for row in records:
                     csvfile.writerow(row)
 
@@ -162,7 +172,7 @@ if __name__ == "__main__":
     # example
     q = RepositoryQuery()
     # pid = q.get_collection_pid('National Environmental Policy Act (NEPA)')
-    de = DataExporter()
+    # de = DataExporter()
     # de.export_collection_as_csv(q, q.pid)
-    de.export_all_collections_as_csv(q,q.get_all_collections())
+    # de.export_all_collections_as_csv(q,q.get_all_repo_data())
                 

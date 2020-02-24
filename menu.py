@@ -98,7 +98,7 @@ Query NOAA Resposistory JSON REST API
         
         # export all collections
         self.export.export_all_collections_as_csv(self.query,
-            self.query.get_all_collections())
+            self.query.get_all_repo_data())
 
     def exit_menu(self):
         print("")
