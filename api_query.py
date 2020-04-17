@@ -33,7 +33,8 @@ class RepositoryQuery():
                 "NOAA General Documents" : "10031",
                 "NOAA International Agreements" : "11879",
                 "Office of Marine and Aviation Operations (OMAO)" : "16402",
-                "Integrated Ecosystem Assessment (IEA)":"22022"
+                "Integrated Ecosystem Assessment (IEA)":"22022",
+                "NOAA Cooperative Institutes": "23649"
             }
 
     def __init__(self):
@@ -172,7 +173,7 @@ if __name__ == "__main__":
     # example
     q = RepositoryQuery()
     # pid = q.get_collection_pid('National Environmental Policy Act (NEPA)')
-    # de = DataExporter()
+    de = DataExporter()
     # de.export_collection_as_csv(q, q.pid)
-    # de.export_all_collections_as_csv(q,q.get_all_repo_data())
+    de.export_all_collections_as_csv(q,q.get_all_repo_data())
                 
