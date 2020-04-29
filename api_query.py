@@ -20,7 +20,7 @@ class RepositoryQuery():
     # dictionary containing NOAA Repository collections and associated PIDS
     pid_dict = { 
                 "National Environmental Policy Act (NEPA)" : "1",
-                "Deepwater Horizon Materials (DWH)" : "2",
+                "Weather Research and Forecasting Innovation Act" : "23702",
                 "Coral Reef Conservation Program (CRCP)" : "3",
                 "Ocean Exploration Program (OER)" : "4",
                 "National Marine Fisheries Service (NMFS)" : "5",
