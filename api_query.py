@@ -40,18 +40,6 @@ class RepositoryQuery():
     def __init__(self):
         self.pid = ''
 
-    def get_collection_pid(self, collection_name):
-        """
-        Method takes collection name as argument, returns collection's
-        pid.
-        Parameters:
-            collection: collection name
-        """
-        for key in self.pid_dict.keys():
-            if key == collection_name:
-                self.pid = self.pid_dict[key]
-                return self.pid
-
 
     def get_json(self,pid):
         """
@@ -60,11 +48,8 @@ class RepositoryQuery():
             pid: collection pid
         """
         #first query
-        full_url = self.api_url + pid
-        r = requests.get(full_url)
-        status = r.status_code 
-        if status != 200:
-            return 'Request not successful. Try again'
+        full_url = self.api_url + check_pid(self.pid_dict, pid)
+        r = check_url(full_url)
         return r.json()
         
     
@@ -117,16 +102,16 @@ class DataExporter():
     date_info = datetime.now().strftime("%Y_%m_%d") + ".csv"
     headers = ['link', 'title', 'doc_type','facets']
 
-    def export_collection_as_csv(self, repository_query, collection):
+    def export_collection_as_csv(self, repository_query, collection_pid):
         """
         DataExporter Method returns individually selected collection in 
         form of CSV which includes fields for title and item link.
         Parameters:
             reposistory_query: ReposistoryQuery class
-            collection: collection pid
+            collection_pid: collection pid
         """
         
-        data = repository_query.get_json(collection)
+        data = repository_query.get_json(collection_pid)
         records = repository_query.get_collection_data(data)
         
         collection_file = "noaa_collection_" + self.date_info
@@ -156,7 +141,7 @@ class DataExporter():
 
             # loop through all reposistory data
             for collection in repo_data:
-                # call RepositoryQuery method get_collection_data
+                # call RepositoryQuery method get_collection_data'
                 records = repository_query.get_collection_data(collection)
                 for row in records:
                     csvfile.writerow(row)
@@ -166,14 +151,41 @@ class DataExporter():
         f.insert(0,'|'.join(self.headers) + '\n')
         open(deduped_collections_file,'w', encoding='utf-8').writelines(f)
         os.remove(collections_file)
-      
+
+
+def check_url(url):
+    """
+    Check if url returns 200. Returns response, if not return
+    message and quit program.
+    Parameters:
+        url: url string.
+    """
+    r = requests.get(url)
+    if r.status_code != 200:
+        return 'status code did not return 200'
+        sys.exit(1)
+    return r
+
+
+def check_pid(collection_info, pid):
+    """
+    Checks to see if pid is a valid pid repo collection pid. Return 
+    error message and exit program is value isn't valid; return pid passed in
+    if value is valid.
+    Parameters:
+        pid: sting value
+    """
+    for collection_pid in collection_info.values():
+        if pid == collection_pid:
+            return pid
+    return f'{pid} is not a valid pid'
+
 
 if __name__ == "__main__":
     import csv
     # example
     q = RepositoryQuery()
-    # pid = q.get_collection_pid('National Environmental Policy Act (NEPA)')
     de = DataExporter()
-    # de.export_collection_as_csv(q, q.pid)
-    de.export_all_collections_as_csv(q,q.get_all_repo_data())
+    de.export_collection_as_csv(q,'4')
+    # de.export_all_collections_as_csv(q,q.get_all_repo_data())
                 
