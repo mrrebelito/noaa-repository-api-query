@@ -5,3 +5,4 @@ __pycache
 README.md
 requirements.txt
 *.json
+*.db

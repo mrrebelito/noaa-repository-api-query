@@ -76,8 +76,13 @@ class RepositoryQuery():
                 facets = ';'.join(facets)
             except KeyError:
                 facets = ''
+            try:
+                doi = row['mods.sm_digital_object_identifier'][0]
+            except KeyError:
+                doi = ''
             
-            collection_info.append([link,title, doc_type,facets])
+            collection_info.append([link,title, doc_type,
+                facets, doi])
             
         return collection_info
 
@@ -100,7 +105,7 @@ class DataExporter():
     """Class for exporting data. """
 
     date_info = datetime.now().strftime("%Y_%m_%d") + ".csv"
-    headers = ['link', 'title', 'doc_type','facets']
+    headers = ['link', 'title', 'doc_type','facets', 'doi']
 
     def export_collection_as_csv(self, repository_query, collection_pid):
         """
@@ -132,7 +137,7 @@ class DataExporter():
             JSON and then is looped through.
         """
 
-        # calls api.get method which call JSON API to retrieve all collections 
+        # calls api.get method  which call JSON API to retrieve all collections 
         collections_file = "noaa_collections_" + self.date_info
         deduped_collections_file = "noaa_collections_final_" + self.date_info     
         
@@ -185,7 +190,7 @@ if __name__ == "__main__":
     import csv
     # example
     q = RepositoryQuery()
-    de = DataExporter()
-    de.export_collection_as_csv(q,'4')
+    # de = DataExporter()
+    #de.export_collection_as_csv(q,'4')
     # de.export_all_collections_as_csv(q,q.get_all_repo_data())
                 
