@@ -27,4 +27,4 @@ def get_collections():
 
     return pid_dict
 
-print(get_collections())
+pid_info = get_collections()
