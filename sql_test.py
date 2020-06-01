@@ -6,17 +6,6 @@ from api_query import RepositoryQuery
 """Populate sqlite database with repo data"""
 
 
-q = RepositoryQuery()
-db_name = 'test.db'
-
-# remove db file
-if os.path.exists(db_name):
-    os.remove(db_name)
-
-conn = sqlite3.connect(db_name)
-c = conn.cursor()
-
-
 def brief_collection_names(name):
     'Create brief collection names based on api collection keys'
 
@@ -64,5 +53,21 @@ def export_all_collections_to_db(collection_info,repository_query):
     
     #close the connection
     conn.close()
+
+
+if __name__ == "__main__":
+
+    q = RepositoryQuery()
+    db_name = 'test.db'
+
+    # remove db file
+    if os.path.exists(db_name):
+        os.remove(db_name)
+
+    conn = sqlite3.connect(db_name)
+    c = conn.cursor()
+
+
+
 
 
