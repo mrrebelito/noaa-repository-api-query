@@ -41,7 +41,7 @@ class RepositoryQuery():
         self.pid = ''
 
 
-    def get_json(self,pid):
+    def get_collection_json(self,pid):
         """
         Collection is queried via API, returning JSON.
         Parameters: 
@@ -53,7 +53,7 @@ class RepositoryQuery():
         return r.json()
         
     
-    def get_collection_data(self,json_data):
+    def filter_collection_json(self,json_data):
         """
         Individual collection is iterated over to return
         title and item link in form of list of lists.
@@ -98,7 +98,7 @@ class RepositoryQuery():
         Collection data is returned in JSON format.
         """
         for collection in self.pid_dict.values():
-            yield self.get_json(collection)  
+            yield self.get_collection_json(collection)  
 
 
 class DataExporter():
@@ -116,8 +116,8 @@ class DataExporter():
             collection_pid: collection pid
         """
         
-        data = repository_query.get_json(collection_pid)
-        records = repository_query.get_collection_data(data)
+        data = repository_query.get_collection_json(collection_pid)
+        records = repository_query.filter_collection_json(data)
         
         collection_file = "noaa_collection_" + self.date_info
         with open(collection_file, 'w', newline='', encoding='utf-8') as fh:
@@ -146,8 +146,8 @@ class DataExporter():
 
             # loop through all reposistory data
             for collection in repo_data:
-                # call RepositoryQuery method get_collection_data'
-                records = repository_query.get_collection_data(collection)
+                # call RepositoryQuery method filter_collection_json'
+                records = repository_query.filter_collection_json(collection)
                 for row in records:
                     csvfile.writerow(row)
 
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     import csv
     # example
     q = RepositoryQuery()
-    # de = DataExporter()
-    #de.export_collection_as_csv(q,'4')
+    de = DataExporter()
+    de.export_collection_as_csv(q,'9')
     # de.export_all_collections_as_csv(q,q.get_all_repo_data())
                 
