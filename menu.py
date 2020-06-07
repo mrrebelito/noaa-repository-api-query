@@ -3,7 +3,7 @@ import sys
 import csv
 import json
 from datetime import datetime
-from api_query import RepositoryQuery, DataExporter
+from api_query import RepositoryQuery, DataExporterm, Menu
 
 """ 
 Module used to provide an interactive command-line menu api_query.py 
@@ -62,7 +62,6 @@ Query NOAA Resposistory JSON REST API
         print("Enter the number associated with collection to retrieve data:")
         print("")
         print("NEPA : 1")
-        print("Deep Water Horizon: 2")
         print("Coral Reef Conservation Program: 3")
         print("Ocean Exploration Program: 4")
         print("National Marine Fisheries Service : 5")
@@ -76,6 +75,7 @@ Query NOAA Resposistory JSON REST API
         print("NOAA International Agreements: 11879")
         print("Office of Marine and Aviation Operations (OMAO): 16402")
         print("Integrated Ecosystem Assessment (IEA): 22022")
+        print("NOAA Cooperative Institutes: 23649")
         print("")  
         
     def get_csv_of_collection_titles(self):
@@ -98,7 +98,7 @@ Query NOAA Resposistory JSON REST API
         
         # export all collections
         self.export.export_all_collections_as_csv(self.query,
-            self.query.get_all_repo_data())
+            self.query.get_all_ir_data())
 
     def exit_menu(self):
         print("")

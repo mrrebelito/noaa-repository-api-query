@@ -88,7 +88,7 @@ class Database():
         
         for name, pid in collection_info.items():
             json_d = self.ir_api.get_collection_json(pid)
-            data = self.ir_api.filter_collection_json(json_d)
+            data = self.ir_api.filter_collection_data(json_d)
             table_name = brief_collection_names(name)
 
             # create table for each collection
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     # db.create_table('oer')
 
     # json_data = q.get_collection_json('4')
-    # data = q.filter_collection_json(json_data)
+    # data = q.filter_collection_data(json_data)
 
     # db.insert_single_collection('oer', data)
 

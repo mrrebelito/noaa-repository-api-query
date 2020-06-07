@@ -1,8 +1,14 @@
-# Python tool for querying NOAA Institutional Repository (IR) JSON API
+# Python tools for interacting with NOAA Institutional Repository REST API
 
-Once files are downloaded, tool provides a menu to view or individual collections as well as download all items from IR. All packages used within the files are builtins, with the exception of requests.
+The [NOAA Institutional Repository](https://repository.library.noaa.gov/) has a REST API that which outputs JSON.
 
-## Usage
+The following Python scripts allow you to inteact with the API.
+
+## CLI Menu
+
+ This tool provides a menu to view or individual collections as well as download all items from IR. All packages used within the files are builtins, with the exception of requests.
+
+### Usage
 
 Download api_query.py and menu.py and place in the same. Run the following in shell:
 
@@ -20,3 +26,7 @@ If there is no issue, you should be greeted with the following:
 ```
 
 Or, you can simply use ```api_query.py``` on its own. 
+
+## Add API data to Sqlite DB
+
+This program allows you to leverage the IR API via ```api_query```, downloading data and adding to to a sqlite database. Once a db has been created you can also launch a datasette instance either locally or through heroku. 

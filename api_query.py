@@ -3,15 +3,27 @@ from datetime import datetime
 import requests
 
 """ 
-Module used to query NOAA Institutional Repository.
+Classes used to query IR and export output:
+- Fields
+- RepositoryQuery
+- DataExporter
 
-Contains Query class which will return IR collection data in the 
-following ways: 
-1) individual collections in CSV
-2) all collections in CSV
 """
 
-class RepositoryQuery():
+class Fields():
+
+    fields = [ 'PID', 'mods.title', 'mods.type_of_resource',
+    'mods.sm_localcorpname', 'mods.sm_digital_object_identifier']
+    
+    def append_field(self, value):
+        """Append a single string value to list"""
+        if not isinstance(value, str):
+            print('Value is not a string. Try again.')
+        else:
+            self.fields.append(value)
+
+
+class RepositoryQuery(Fields):
     """Query class used to interact with NOAA Repository JSON API"""
 
     api_url = "https://repository.library.noaa.gov/fedora/export/download/collection/"
@@ -38,8 +50,10 @@ class RepositoryQuery():
             }
 
     def __init__(self):
+        super().__init__() # inherit fields
         self.pid = ''
-
+        self.collection_data = []   
+        self.all_collection_data = []
 
     def get_collection_json(self,pid):
         """
@@ -53,42 +67,40 @@ class RepositoryQuery():
         return r.json()
         
     
-    def filter_collection_json(self,json_data):
+    def filter_collection_data(self, json_data):
         """
-        Individual collection is iterated over to return
-        title and item link in form of list of lists.
+        Dynamically filters json based on fields list passed into function.
         Parameters:
-            json_data: JSON data from an individual collection.
+            json_data: JSON data of collection
         """
-        collection_info = []
-        for row in json_data['response']['docs']:
-            link = row['PID'].replace('noaa:', self.item_url)
+
+        all_field_data = []
+
+        # fields is an attribute
+        for field in self.fields:
+            # call transform_json_data function
+            all_field_data.append(transform_json_data(json_data, field))
+                        
+        self.collection_data = []
+
+        while all_field_data: # loop though field data until list is 0
+
+            interleaved_field_data = []
+
             try:
-                title = row['mods.title'].replace('\n','')
-            except KeyError:
-                title = ''
-            try:
-                doc_type = row['mods.type_of_resource'][0]
-            except KeyError:
-                doc_type = ''
-            try:
-                facets = row['mods.sm_localcorpname']
-                facets = ';'.join(facets)
-            except KeyError:
-                facets = ''
-            try:
-                doi = row['mods.sm_digital_object_identifier'][0]
-            except KeyError:
-                doi = ''
-            
-            collection_info.append([link,title, doc_type,
-                facets, doi])
-            
-        return collection_info
+                for item in all_field_data:
+                    field = item.pop()
+                    interleaved_field_data.append(field)
+            except IndexError: # silences error caused by list running out
+                break
+
+            self.collection_data.append(interleaved_field_data)
+
+        return self.collection_data
 
 
-    def get_all_repo_data(self):
-        """ 
+    def get_all_ir_data(self):
+        """
         Get data all collections in IR using collection name and PID 
         dictionary. 
         
@@ -101,11 +113,10 @@ class RepositoryQuery():
             yield self.get_collection_json(collection)  
 
 
-class DataExporter():
+class DataExporter(Fields):
     """Class for exporting data. """
 
     date_info = datetime.now().strftime("%Y_%m_%d") + ".csv"
-    headers = ['link', 'title', 'doc_type','facets', 'doi']
 
     def export_collection_as_csv(self, repository_query, collection_pid):
         """
@@ -113,27 +124,28 @@ class DataExporter():
         form of CSV which includes fields for title and item link.
         Parameters:
             reposistory_query: ReposistoryQuery class
-            collection_pid: collection pid
+            json_data: json_data from a collection
+            fields: instance attribute
         """
         
         data = repository_query.get_collection_json(collection_pid)
-        records = repository_query.filter_collection_json(data)
+        records = repository_query.filter_collection_data(data)
         
         collection_file = "noaa_collection_" + self.date_info
         with open(collection_file, 'w', newline='', encoding='utf-8') as fh:
             csvfile = csv.writer(fh, delimiter='|')
-            csvfile.writerow(self.headers)
+            csvfile.writerow(self.fields)
             for row in records:
                 csvfile.writerow(row)
 
 
-    def export_all_collections_as_csv(self, repository_query, repo_data):
+    def export_all_collections_as_csv(self, repository_query, all_ir_data):
         """
         DataExporter method creates a deduplicated title and link list of all 
         items in the IR.
         Parameters:
             repository_query: ReposistoryQuery class
-            repo_data: RepositoryQuery get_all_repo_data method, which returns 
+            all_ir_data: RepositoryQuery get_all_ir_data method, which returns 
             JSON and then is looped through.
         """
 
@@ -145,17 +157,49 @@ class DataExporter():
             csvfile = csv.writer(fh, delimiter='|')
 
             # loop through all reposistory data
-            for collection in repo_data:
-                # call RepositoryQuery method filter_collection_json'
-                records = repository_query.filter_collection_json(collection)
+            for collection in all_ir_data:
+                print(collection)
+                # call RepositoryQuery method filter_collection_data'
+                records = repository_query.filter_collection_data(collection)
+                print(records)
                 for row in records:
                     csvfile.writerow(row)
 
         # deduplicate files
         f = list(set(open(collections_file,encoding='utf-8').readlines()))
-        f.insert(0,'|'.join(self.headers) + '\n')
+        f.insert(0,'|'.join(self.fields) + '\n')
         open(deduped_collections_file,'w', encoding='utf-8').writelines(f)
         os.remove(collections_file)
+
+
+def transform_json_data(json_data, field):
+    """
+    Transform JSON data from collection into a list. Helper function used in
+    combination with 'filter_collection_data' by passing into the said
+    function as an argument.
+    json_data: JSON collection data
+    field: 
+    """
+
+    filtered_data = []
+
+    docs = json_data['response']['docs'] 
+
+    for doc in docs:
+        try:
+            # if field is instance join with semicolon
+            if isinstance(doc[field], list):
+                filtered_data.append(';'.join(doc[field]))
+            else:
+                # remove new lines and noaa:
+                doc[field] = doc[field].replace(r'\n','')
+                doc[field] = doc[field].replace('noaa:','https://repository.library.noaa.gov/view/noaa/')
+                filtered_data.append(doc[field])
+        except KeyError:
+            doc[field] = ''
+            filtered_data.append(doc[field])
+
+    return filtered_data
 
 
 def check_url(url):
@@ -189,8 +233,11 @@ def check_pid(collection_info, pid):
 if __name__ == "__main__":
     import csv
     # example
+    
     q = RepositoryQuery()
-    de = DataExporter()
-    de.export_collection_as_csv(q,'9')
-    # de.export_all_collections_as_csv(q,q.get_all_repo_data())
+    
+    
+    # de = DataExporter()
+    # de.export_collection_as_csv(q,'9')
+    # de.export_all_collections_as_csv(q,q.get_all_ir_data())
                 
