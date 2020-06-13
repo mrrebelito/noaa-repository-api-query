@@ -61,8 +61,10 @@ class RepositoryQuery(Fields):
         Parameters: 
             pid: collection pid
         """
-        #first query
-        full_url = self.api_url + check_pid(self.pid_dict, pid)
+        # set instance attribute, automatically convert ints
+        self.pid = str(pid)
+
+        full_url = self.api_url + check_pid(self.pid_dict, self.pid)
         r = check_url(full_url)
         return r.json()
         
@@ -133,7 +135,12 @@ class DataExporter(Fields):
         
         collection_file = "noaa_collection_" + self.date_info
         with open(collection_file, 'w', newline='', encoding='utf-8') as fh:
-            csvfile = csv.writer(fh, delimiter='|')
+            csvfile = csv.writer(
+                fh,
+                delimiter='|',
+                quoting=csv.QUOTE_NONE,
+                quotechar=''
+                )
             csvfile.writerow(self.fields)
             for row in records:
                 csvfile.writerow(row)
@@ -154,14 +161,17 @@ class DataExporter(Fields):
         deduped_collections_file = "noaa_collections_final_" + self.date_info     
         
         with open(collections_file, 'w', newline='', encoding='utf-8') as fh:
-            csvfile = csv.writer(fh, delimiter='|')
+            csvfile = csv.writer(
+                fh,
+                delimiter='|',
+                quoting=csv.QUOTE_NONE,
+                quotechar=''
+                )
 
             # loop through all reposistory data
             for collection in all_ir_data:
-                print(collection)
                 # call RepositoryQuery method filter_collection_data'
                 records = repository_query.filter_collection_data(collection)
-                print(records)
                 for row in records:
                     csvfile.writerow(row)
 
@@ -191,9 +201,9 @@ def transform_json_data(json_data, field):
             if isinstance(doc[field], list):
                 filtered_data.append(';'.join(doc[field]))
             else:
-                # remove new lines and noaa:
-                doc[field] = doc[field].replace(r'\n','')
-                doc[field] = doc[field].replace('noaa:','https://repository.library.noaa.gov/view/noaa/')
+                # remove new lines, carriage returns and noaa:
+                doc[field] = doc[field].replace('\n','').replace('\r', '')
+                doc[field] = doc[field].replace('noaa:','')
                 filtered_data.append(doc[field])
         except KeyError:
             doc[field] = ''
@@ -237,7 +247,7 @@ if __name__ == "__main__":
     q = RepositoryQuery()
     
     
-    # de = DataExporter()
-    # de.export_collection_as_csv(q,'9')
-    # de.export_all_collections_as_csv(q,q.get_all_ir_data())
+    de = DataExporter()
+    # de.export_collection_as_csv(q,'3')
+    de.export_all_collections_as_csv(q,q.get_all_ir_data())
                 

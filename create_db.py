@@ -3,21 +3,27 @@ import sqlite3
 from api_query import RepositoryQuery
 
 
-"""Populate sqlite database with ir data"""
+"""
+Populate sqlite database with ir data
+
+Uses RepositoryQuery Class to pull data from repository. 
+"""
 
 
 class Database():
 
 
-    def __init__(self, db_name,table_fields, ir_api):
+    def __init__(self, db_name, ir_api):
         # remove db file if exists
         self.db_name = check_if_db_exists(db_name)            
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
-        self.table_fields = table_fields
-        self.columns = ','.join(list(self.table_fields))
-        self.implicit_vals = generate_implicit_values(f.values())        
+        # leverage RepositoryQuery class
         self.ir_api = ir_api
+        # fields can be updated via attribute
+        self.table_fields = generate_field_dict(self.ir_api, self.ir_api.fields)
+        self.columns = generate_columns(self.table_fields)
+        self.implicit_vals = generate_implicit_values(self.table_fields.values())        
 
         
     def __repr__(self):
@@ -70,8 +76,6 @@ class Database():
  
     def insert_single_collection(self, table_name, data):
         "populate sqlite database using repo data"
-
-        print(data)
 
         #call insert rows function
         self.insert_rows(table_name, data)
@@ -129,6 +133,22 @@ def check_if_db_exists(db_name):
     return db_name
 
 
+def generate_field_dict(ir_api,repository_fields):
+    """
+    Dynamically generates dictionary using Repository fields.
+    Parameters: list of repository fields
+    """ 
+
+    text_count = len(repository_fields) * 'text '
+    text_list = text_count.split(' ')
+    field_dict = {'id': 'integer primary key autoincrement'}
+    field_values = dict(zip(ir_api.fields, text_list))
+    field_dict.update(field_values)
+
+    return field_dict
+
+
+
 def brief_collection_names(name):
         """
         Create brief collection names based on api collection keys
@@ -139,6 +159,16 @@ def brief_collection_names(name):
         brief = (name[:25] + '...') \
             if len(name) > 25 else name
         return brief
+
+
+def generate_columns(fields):
+    """
+    Generates columnns, replacing period with underscore
+    Parameters: table fields
+    """
+
+    fields = ','.join(list(fields))
+    return fields.replace('.','_')
 
 
 def generate_implicit_values(fields):
@@ -163,11 +193,9 @@ def generate_implicit_values(fields):
 if __name__ == "__main__":
 
     # initialize table class
-    f = {'id': 'integer primary key autoincrement', 'link':'text',
-        'title':'text', 'doc_type': 'text', 'facets': 'text', 'doi': 'text'}
 
     q = RepositoryQuery()
-    db = Database('ir_data.db',f, q)
+    db = Database('ir_data.db', q)
     # db.create_table('oer')
 
     # json_data = q.get_collection_json('4')
