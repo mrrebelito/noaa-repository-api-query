@@ -1,4 +1,4 @@
-import os, csv
+import os, csv, sys
 from datetime import datetime
 import requests
 
@@ -119,54 +119,71 @@ class DataExporter(Fields):
     """Class for exporting data. """
 
     date_info = datetime.now().strftime("%Y_%m_%d") + ".csv"
+    col_fname = "noaa_collection_" + date_info
 
-    def export_collection_as_csv(self, repository_query, collection_pid):
+    def export_collection_as_csv(self, repository_query, collection_pid,
+        export_path='.', col_fname=col_fname):
+        
         """
         DataExporter Method returns individually selected collection in 
         form of CSV which includes fields for title and item link.
         Parameters:
-            reposistory_query: ReposistoryQuery class
-            json_data: json_data from a collection
-            fields: instance attribute
+            reposistory_query: ReposistoryQuery class instance
+            collection_pid: collection pid value
+            export_path: path to download collection file to. Default is
+                set to current working directory
+            col_fname: DataExporter class attribute ued as 
+                keyword default param 
         """
+        # creates directory if it doesn't exists
+        make_dir(export_path)
         
         data = repository_query.get_collection_json(collection_pid)
         records = repository_query.filter_collection_data(data)
         
-        collection_file = "noaa_collection_" + self.date_info
-        with open(collection_file, 'w', newline='', encoding='utf-8') as fh:
-            csvfile = csv.writer(
-                fh,
+        with open(
+            os.path.join(export_path,col_fname),'w', newline='',
+            encoding='utf-8') as fh:
+
+            csvfile = csv.writer(fh,
                 delimiter='|',
                 quoting=csv.QUOTE_NONE,
-                quotechar=''
-                )
+                quotechar='')
+
             csvfile.writerow(self.fields)
             for row in records:
                 csvfile.writerow(row)
 
 
-    def export_all_collections_as_csv(self, repository_query, all_ir_data):
+    def export_all_collections_as_csv(self, repository_query, all_ir_data,
+        export_path='.'):
         """
         DataExporter method creates a deduplicated title and link list of all 
         items in the IR.
         Parameters:
-            repository_query: ReposistoryQuery class
+            repository_query: ReposistoryQuery class instance
             all_ir_data: RepositoryQuery get_all_ir_data method, which returns 
             JSON and then is looped through.
+            export_path: path to download collection file to. Default is
+                set to current working directory
         """
+        # creates directory if it doesn't exists
+        make_dir(export_path)
 
         # calls api.get method  which call JSON API to retrieve all collections 
         collections_file = "noaa_collections_" + self.date_info
-        deduped_collections_file = "noaa_collections_final_" + self.date_info     
+        collections_full_path = os.path.join(export_path, collections_file)
+        deduped_collections_file = "noaa_collections_final_" + self.date_info
+        deduped_collections_full_path = os.path.join(export_path,
+            deduped_collections_file)     
         
-        with open(collections_file, 'w', newline='', encoding='utf-8') as fh:
-            csvfile = csv.writer(
-                fh,
+        with open(collections_full_path, 'w',
+            newline='', encoding='utf-8') as fh:
+            
+            csvfile = csv.writer(fh,
                 delimiter='|',
                 quoting=csv.QUOTE_NONE,
-                quotechar=''
-                )
+                quotechar='')
 
             # loop through all reposistory data
             for collection in all_ir_data:
@@ -176,10 +193,11 @@ class DataExporter(Fields):
                     csvfile.writerow(row)
 
         # deduplicate files
-        f = list(set(open(collections_file,encoding='utf-8').readlines()))
+
+        f = list(set(open(collections_full_path,encoding='utf-8').readlines()))
         f.insert(0,'|'.join(self.fields) + '\n')
-        open(deduped_collections_file,'w', encoding='utf-8').writelines(f)
-        os.remove(collections_file)
+        open(deduped_collections_full_path,'w', encoding='utf-8').writelines(f)
+        os.remove(collections_full_path)
 
 
 def transform_json_data(json_data, field):
@@ -240,6 +258,17 @@ def check_pid(collection_info, pid):
     return f'{pid} is not a valid pid'
 
 
+def make_dir(filepath):
+    """
+    Creates directory in current working
+    directory if it doesn't exists
+    Paramaters:
+        filepath: filepath
+    """
+    if os.path.exists(filepath) == False:
+        os.mkdir(filepath)
+
+
 if __name__ == "__main__":
     import csv
     # example
@@ -248,6 +277,4 @@ if __name__ == "__main__":
     
     
     de = DataExporter()
-    # de.export_collection_as_csv(q,'3')
-    de.export_all_collections_as_csv(q,q.get_all_ir_data())
-                
+    # de.export_collection_as_csv(q,'3', 'new_dir')
