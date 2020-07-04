@@ -57,9 +57,13 @@ class RepositoryQuery(Fields):
 
     def get_collection_json(self,pid):
         """
-        Collection is queried via API, returning JSON.
+        IR collection is queried via REST API.
+        
         Parameters: 
             pid: collection pid
+        
+        Returns:
+            Response header and Documents from an IR collection in JSON.
         """
         # set instance attribute, automatically convert ints
         self.pid = str(pid)
@@ -71,9 +75,13 @@ class RepositoryQuery(Fields):
     
     def filter_collection_data(self, json_data):
         """
-        Dynamically filters json based on fields list passed into function.
+        Filters JSON based on fields list passed into function.
+
         Parameters:
             json_data: JSON data of collection
+
+        Returns:
+            Documents of from an IR collection in JSON
         """
 
         all_field_data = []
@@ -103,20 +111,20 @@ class RepositoryQuery(Fields):
 
     def get_all_ir_data(self):
         """
-        Get data all collections in IR using collection name and PID 
-        dictionary. 
+        Get data all collection data in IR.
         
         Utilize generator function to call function to
         retrieve all IR collections.
         
-        Collection data is returned in JSON format.
+        Returns:
+            All collection data in JSON.
         """
         for collection in self.pid_dict.values():
             yield self.get_collection_json(collection)  
 
 
 class DataExporter(Fields):
-    """Class for exporting data. """
+    """Class used to export data."""
 
     date_info = datetime.now().strftime("%Y_%m_%d") + ".csv"
     col_fname = "noaa_collection_" + date_info
@@ -125,8 +133,8 @@ class DataExporter(Fields):
         export_path='.', col_fname=col_fname):
         
         """
-        DataExporter Method returns individually selected collection in 
-        form of CSV which includes fields for title and item link.
+        Export single collection in a CSV.
+
         Parameters:
             reposistory_query: ReposistoryQuery class instance
             collection_pid: collection pid value
@@ -134,6 +142,9 @@ class DataExporter(Fields):
                 set to current working directory
             col_fname: DataExporter class attribute ued as 
                 keyword default param 
+
+        Returns:
+            CSV of a single IR collection.
         """
         # creates directory if it doesn't exists
         make_dir(export_path)
@@ -158,14 +169,18 @@ class DataExporter(Fields):
     def export_all_collections_as_csv(self, repository_query, all_ir_data,
         export_path='.'):
         """
-        DataExporter method creates a deduplicated title and link list of all 
+        Creates a deduplicated title and link list of all 
         items in the IR.
+
         Parameters:
             repository_query: ReposistoryQuery class instance
             all_ir_data: RepositoryQuery get_all_ir_data method, which returns 
             JSON and then is looped through.
             export_path: path to download collection file to. Default is
                 set to current working directory
+        
+        Returns:
+            CSV of all IR collections.        
         """
         # creates directory if it doesn't exists
         make_dir(export_path)
@@ -202,11 +217,17 @@ class DataExporter(Fields):
 
 def transform_json_data(json_data, field):
     """
-    Transform JSON data from collection into a list. Helper function used in
-    combination with 'filter_collection_data' by passing into the said
-    function as an argument.
-    json_data: JSON collection data
-    field: 
+    Transform JSON data into a list. 
+    
+    A Helper function used in combination with 'filter_collection_data' 
+    by passing into the said function as an argument.
+
+    Parameters:
+        json_data: JSON collection data
+        field: field from api
+
+    Returns:
+        List of collection data.
     """
 
     filtered_data = []
@@ -232,10 +253,14 @@ def transform_json_data(json_data, field):
 
 def check_url(url):
     """
-    Check if url returns 200. Returns response, if not return
-    message and quit program.
+    Check if url returns 200. 
+    
     Parameters:
         url: url string.
+    
+    Returns:
+        Returns response, if not returns
+        message and quit program.
     """
     r = requests.get(url)
     if r.status_code != 200:
@@ -246,11 +271,14 @@ def check_url(url):
 
 def check_pid(collection_info, pid):
     """
-    Checks to see if pid is a valid pid repo collection pid. Return 
-    error message and exit program is value isn't valid; return pid passed in
-    if value is valid.
+    Checks to see if pid is a valid pid repo collection pid.
+
     Parameters:
         pid: sting value
+
+    Returns:
+        Error message and exit program is value isn't valid; pid 
+        passed in if value is valid.
     """
     for collection_pid in collection_info.values():
         if pid == collection_pid:
@@ -262,8 +290,10 @@ def make_dir(filepath):
     """
     Creates directory in current working
     directory if it doesn't exists
+
     Paramaters:
         filepath: filepath
+    
     """
     if os.path.exists(filepath) == False:
         os.mkdir(filepath)
@@ -277,4 +307,4 @@ if __name__ == "__main__":
     
     
     de = DataExporter()
-    # de.export_collection_as_csv(q,'3', 'new_dir')
+    # de.export_collection_as_csv(q,'3')
