@@ -46,7 +46,8 @@ class RepositoryQuery(Fields):
                 "NOAA International Agreements" : "11879",
                 "Office of Marine and Aviation Operations (OMAO)" : "16402",
                 "Integrated Ecosystem Assessment (IEA)":"22022",
-                "NOAA Cooperative Institutes": "23649"
+                "NOAA Cooperative Institutes": "23649",
+                "Cooperative Science Centers": "24914"
             }
 
     def __init__(self):
