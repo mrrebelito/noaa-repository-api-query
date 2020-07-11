@@ -1,4 +1,4 @@
-import os, csv, sys
+import os, csv, sys, re
 from datetime import datetime
 import requests
 
@@ -13,7 +13,8 @@ Classes used to query IR and export output:
 class Fields():
 
     fields = [ 'PID', 'mods.title', 'mods.type_of_resource',
-    'mods.sm_localcorpname', 'mods.sm_digital_object_identifier']
+    'mods.sm_localcorpname', 'mods.sm_digital_object_identifier',
+    'fgs.createdDate']
     
     def append_field(self, value):
         """Append a single string value to list"""
@@ -26,8 +27,8 @@ class Fields():
 class RepositoryQuery(Fields):
     """Query class used to interact with NOAA Repository JSON API"""
 
-    api_url = "https://repository.library.noaa.gov/fedora/export/download/collection/"
     item_url = "https://repository.library.noaa.gov/view/noaa/"
+    today = datetime.now().strftime('%Y-%m-%d')
 
     # dictionary containing NOAA Repository collections and associated PIDS
     pid_dict = { 
@@ -55,7 +56,41 @@ class RepositoryQuery(Fields):
         self.pid = ''
         self.collection_data = []   
         self.all_collection_data = []
+        self.api_url =  "https://repository.library.noaa.gov/fedora/export/download/collection/"
+        self.date_params = {}
 
+    
+    def date_filter(self, from_d, until_d=today):
+        """
+        Update api_url attribute to provide a date filter.
+
+        From date parameter is required. Until isn't. If until
+        is not entered, the current date generated via datetime.
+
+        'YYYY-MM-DD' sting is the required format. 
+
+        Parameters:
+            from_d: from date, required
+            until_d: end date, optional. 
+
+        Returns: 
+            updated api_url with date filter.
+        """
+        
+        #validate dates
+        from_d, until_d = date_param_format(from_d), date_param_format(until_d)
+
+        from_d = f'{from_d}T00:00:00Z'
+        until_d = f'{until_d}T00:00:00Z'
+
+        self.date_params = {
+            'from': from_d,
+            'until': until_d
+            }
+
+        return self.date_params 
+
+        
     def get_collection_json(self,pid):
         """
         IR collection is queried via REST API.
@@ -70,7 +105,7 @@ class RepositoryQuery(Fields):
         self.pid = str(pid)
 
         full_url = self.api_url + check_pid(self.pid_dict, self.pid)
-        r = check_url(full_url)
+        r = check_url(full_url, params=self.date_params) # helper function 
         return r.json()
         
     
@@ -252,18 +287,19 @@ def transform_json_data(json_data, field):
     return filtered_data
 
 
-def check_url(url):
+def check_url(url,params=None):
     """
-    Check if url returns 200. 
+    Check URL if it returns 200. If not exits
+    script with sys.exit.  
     
     Parameters:
-        url: url string.
+        url: api url string.
     
     Returns:
         Returns response, if not returns
         message and quit program.
     """
-    r = requests.get(url)
+    r = requests.get(url,params=params)
     if r.status_code != 200:
         return 'status code did not return 200'
         sys.exit(1)
@@ -298,6 +334,21 @@ def make_dir(filepath):
     """
     if os.path.exists(filepath) == False:
         os.mkdir(filepath)
+
+
+def date_param_format(date):
+    """
+    Check if date param format is valid.
+
+    format: 'YYYY-MM-DDT00:00:00Z'
+    
+    """
+    try:
+        datetime.strptime(date, '%Y-%m-%d')
+    except ValueError:
+        raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+    finally:
+        return date
 
 
 if __name__ == "__main__":

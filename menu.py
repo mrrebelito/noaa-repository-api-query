@@ -1,19 +1,10 @@
-import os
-import sys
-import csv
-import json
+import os, sys, csv, json
 from datetime import datetime
-from api_query import RepositoryQuery, DataExporterm, Menu
+from api_query import RepositoryQuery, DataExporter
 
 """ 
-Module used to provide an interactive command-line menu api_query.py 
-module.py
+Menu provides interactive command-line menu for api_query.py 
 
-Contains Menu class which will return IR collection data in the form 
-of a CSV or JSON file in the following ways: 
-1) individual collections via JSON
-2) individual collections (title and item link) via CSV
-3) all collections (title and item link) via CSV
 """
 
 
@@ -76,29 +67,46 @@ Query NOAA Resposistory JSON REST API
         print("Office of Marine and Aviation Operations (OMAO): 16402")
         print("Integrated Ecosystem Assessment (IEA): 22022")
         print("NOAA Cooperative Institutes: 23649")
+        print("Cooperative Science Centers : 24914")
         print("")  
         
     def get_csv_of_collection_titles(self):
         """
-        Method returns individually selected collection in form of CSV
-        which includes fields for title and item link.
+        Returns selected collection as CSV
         """
+
+        # call filter_by_date function
+        filter_by_date(self.query.date_filter)
+
         self.collections()
         collection_pid = input("Select a collection: ")
         
         # export collection
         self.export.export_collection_as_csv(self.query, collection_pid)
 
+        clear_screen()
+        for name, pid in self.query.pid_dict.items():
+            if collection_pid == pid:
+                print('')
+                print(f'File printed: {name}')
+
 
     def get_csv_of_all_items(self):
         """
-        Method creates a deduplicated title and link list of all items in the IR.
+        Returns a CSV of all titles from IR.
         """
-        # calls api.get method which call JSON API to retrieve all collections
         
+        # call filter_by_date function
+        filter_by_date(self.query.date_filter)
+
         # export all collections
         self.export.export_all_collections_as_csv(self.query,
             self.query.get_all_ir_data())
+
+        clear_screen()
+        print('')
+        print(f'All collections file printed')
+
 
     def exit_menu(self):
         print("")
@@ -106,6 +114,34 @@ Query NOAA Resposistory JSON REST API
         print("")
         os._exit(0)
         
+
+def filter_by_date(date_filter):
+    """ """
+
+    while True:
+
+        # filter by date
+        filter_by_date = input('Filter by Date[y/n]? ')
+
+        if filter_by_date == 'y' or filter_by_date == 'Y':
+            from_date = input('From[YYYY-MM-DD]: ')
+            date_filter(from_date)
+            break
+        elif filter_by_date == 'n' or filter_by_date == 'N':
+            break
+        else:
+            print('Enter[y/n]')
+
+
+def clear_screen():
+
+    if sys.platform == "linux" or sys.platform == "linux2":
+        os.system('clear')
+    elif sys.platform == "darwin":
+        os.system('clear')
+    elif sys.platform == "win32":
+        os.system('cls')
+
 
 if __name__ == "__main__":
    m = Menu()
