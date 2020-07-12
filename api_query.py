@@ -345,11 +345,10 @@ def date_param_format(date):
     """
     try:
         datetime.strptime(date, '%Y-%m-%d')
+        return date
     except ValueError:
         raise ValueError("Incorrect data format, should be YYYY-MM-DD")
-    finally:
-        return date
-
+    
 
 if __name__ == "__main__":
     import csv

@@ -116,21 +116,38 @@ Query NOAA Resposistory JSON REST API
         
 
 def filter_by_date(date_filter):
-    """ """
+    """
+    Used to create date filter.
+
+    Parameters:
+        date_filter: api_query method
+    """
 
     while True:
 
         # filter by date
-        filter_by_date = input('Filter by Date[y/n]? ')
+        filter_by = input('Filter by date [y/n]? ')
 
-        if filter_by_date == 'y' or filter_by_date == 'Y':
-            from_date = input('From[YYYY-MM-DD]: ')
-            date_filter(from_date)
-            break
-        elif filter_by_date == 'n' or filter_by_date == 'N':
+        if filter_by == 'y' or filter_by == 'Y':
+
+            from_date = input('From [YYYY-MM-DD]: ')
+            if date_format(from_date):
+
+                until_date = input('OPTIONAL: Until [YYYY-MM-DD/n]: ')
+                if date_format(until_date):
+                    
+                    # call date filter method
+                    date_filter(from_date)
+                    break
+
+                elif until_date == 'n' or until_date == 'N':
+                    date_filter(from_date, until_date)
+                    break
+
+        elif filter_by == 'n' or filter_by == 'N':
             break
         else:
-            print('Enter[y/n]')
+            print('Filter by date [y/n]')
 
 
 def clear_screen():
@@ -141,6 +158,21 @@ def clear_screen():
         os.system('clear')
     elif sys.platform == "win32":
         os.system('cls')
+
+
+def date_format(date):
+    """
+    Check if date param format is valid.
+
+    format: 'YYYY-MM-DDT00:00:00Z'
+    
+    """
+    try:
+        datetime.strptime(date, '%Y-%m-%d')
+        return date
+    except ValueError:
+       print("Incorrect data format, should be YYYY-MM-DD")
+
 
 
 if __name__ == "__main__":
