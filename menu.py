@@ -135,13 +135,14 @@ def filter_by_date(date_filter):
 
                 until_date = input('OPTIONAL: Until [YYYY-MM-DD/n]: ')
                 if date_format(until_date):
-                    
+
                     # call date filter method
-                    date_filter(from_date)
+                    date_filter(from_date, until_date)
                     break
 
                 elif until_date == 'n' or until_date == 'N':
-                    date_filter(from_date, until_date)
+                     
+                    date_filter(from_date)
                     break
 
         elif filter_by == 'n' or filter_by == 'N':

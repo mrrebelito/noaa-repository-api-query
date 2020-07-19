@@ -12,8 +12,8 @@ Classes used to query IR and export output:
 
 class Fields():
 
-    fields = [ 'PID', 'mods.title', 'mods.type_of_resource',
-    'mods.sm_localcorpname', 'mods.sm_digital_object_identifier',
+    fields = [ 'PID', 'mods.title','mods.type_of_resource',
+    'mods.sm_compliance','mods.sm_digital_object_identifier',
     'fgs.createdDate']
     
     def append_field(self, value):
@@ -345,10 +345,11 @@ def date_param_format(date):
     """
     try:
         datetime.strptime(date, '%Y-%m-%d')
-        return date
     except ValueError:
         raise ValueError("Incorrect data format, should be YYYY-MM-DD")
-    
+    finally:
+        return date
+
 
 if __name__ == "__main__":
     import csv
