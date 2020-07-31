@@ -7,27 +7,58 @@ from api_query import RepositoryQuery, DataExporter
 
 
 """
-Script used to create a Datasette docker image.
-
+Generate SQLite database of NOAA IR
+holdings.
 """
 
+def normalize_names(name):
+    """
+    Normalizes colleciton names, removing parentheses and
+    replacing spaces with unscores. 
 
-def main():
+    Parameters:
+        name:  NOAA IR collection name string
 
-    # run bash script to check if Docker is runnning
-    # if not, run Docker
-    subprocess.call('./is_docker_running.sh')
+    """
 
-    #assign docker tag info from command line arg
-    data_dir = sys.argv[1]
-    tag_info = sys.argv[2]
+    name = name.replace(' ','_').lower()
+    name = re.sub('[(].+','',name)
+    name = re.sub(r'_$','',name)
+    return name
+
+
+def write_metadata_json(database, repository_query):
+    """
+    Generate metadata.json file.
+
+    """
+    
+    tables = {}
+    for name in repository_query.pid_dict.keys():
+        #  call normalize function, 
+        #  allowing metadata.json file be diplayed for each collection
+        tables.update({normalize_names(name) : 
+            {'description': f'Items in {name} collection'}})
+
+    meta = {'databases': 
+    { database.replace('.db', '') : 
+    {'title': 'NOAA Institutional Reposistory data',
+    'description': 
+    'Table for each collection in NOAA IR as well as a table for all unique items.',
+    'tables': tables
+    }}}
+
+    with open('metadata.json', 'w') as f:
+        json.dump(meta, f, indent=2)
+
+
+def new_db(data_dir):
 
     # remove dir along with all files
     if os.path.exists(data_dir):
         shutil.rmtree(data_dir)
     os.mkdir(data_dir)
     
-
     # create database name
     database = "collections-" + datetime.now().strftime('%m-%d-%Y') + '.db'
 
@@ -35,10 +66,11 @@ def main():
     q = RepositoryQuery()
     de = DataExporter()
 
+    write_metadata_json(database, q)
+
     collection_info = q.pid_dict
     for name, pid in collection_info.items():
-        name = name.replace(' ', '_').lower()
-        name = re.sub('[(].+','',name) + '.csv'
+        name = normalize_names(name) + '.csv'
 
         # query each collection individually,
         # add to collection data dir
@@ -68,10 +100,9 @@ def main():
         subprocess.call(f"csvs-to-sqlite {csv} {os.path.join(data_dir,database)} -s $'|' -q 3" ,
         shell=True)
 
-    # create docker image using datasete
-    subprocess.call(f'datasette package {os.path.join(data_dir,database)} -t {tag_info}',
-        shell=True)
-
-
+   
 if __name__ == "__main__":
-    main()
+    
+    data_dir = sys.argv[1]
+
+    new_db(data_dir)

@@ -13,7 +13,7 @@ Classes used to query IR and export output:
 class Fields():
 
     fields = [ 'PID', 'mods.title','mods.type_of_resource',
-    'mods.sm_compliance','mods.sm_digital_object_identifier',
+    'mods.ss_publishyear','mods.sm_digital_object_identifier',
     'fgs.createdDate']
     
     def append_field(self, value):
