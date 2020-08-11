@@ -1,2 +1,2 @@
 requests==2.21.0
-datasette==0.4.3
+datasette==0.46
