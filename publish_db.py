@@ -30,7 +30,7 @@ if pub_type == 'docker':
     subprocess.call('./is_docker_running.sh')
 
 # generate db
-# new_db(data_dir)
+new_db(data_dir)
 
 database = glob(os.path.join(data_dir,'*.db'))[0]
 
