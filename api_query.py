@@ -111,7 +111,7 @@ class RepositoryQuery(Fields):
     
     def filter_collection_data(self, json_data):
         """
-        Filters JSON based on fields list passed into function.
+        Filters JSON based on fields list passed into function.        
 
         Parameters:
             json_data: JSON data of collection
