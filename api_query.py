@@ -13,8 +13,8 @@ Classes used to query IR and export output:
 class Fields():
 
     fields = [ 'PID', 'mods.title','mods.type_of_resource',
-    'mods.ss_publishyear','mods.sm_digital_object_identifier',
-    'fgs.createdDate']
+    'mods.abstract','mods.sm_digital_object_identifier',
+    'mods.related_series']
     
     def append_field(self, value):
         """Append a single string value to list"""
@@ -188,12 +188,13 @@ class DataExporter(Fields):
         data = repository_query.get_collection_json(collection_pid)
         records = repository_query.filter_collection_data(data)
         
+        delimter = '\t'
         with open(
             os.path.join(export_path,col_fname),'w', newline='',
             encoding='utf-8') as fh:
 
             csvfile = csv.writer(fh,
-                delimiter='|',
+                delimiter=delimter,
                 quoting=csv.QUOTE_NONE,
                 quotechar='')
 
@@ -228,11 +229,12 @@ class DataExporter(Fields):
         deduped_collections_full_path = os.path.join(export_path,
             deduped_collections_file)     
         
+        delimter = '\t'
         with open(collections_full_path, 'w',
             newline='', encoding='utf-8') as fh:
             
             csvfile = csv.writer(fh,
-                delimiter='|',
+                delimiter=delimter,
                 quoting=csv.QUOTE_NONE,
                 quotechar='')
 
@@ -246,7 +248,7 @@ class DataExporter(Fields):
         # deduplicate files
 
         f = list(set(open(collections_full_path,encoding='utf-8').readlines()))
-        f.insert(0,'|'.join(self.fields) + '\n')
+        f.insert(0,delimter.join(self.fields) + '\n')
         open(deduped_collections_full_path,'w', encoding='utf-8').writelines(f)
         os.remove(collections_full_path)
 

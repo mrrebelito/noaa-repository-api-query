@@ -84,20 +84,20 @@ def new_db(data_dir):
     csv_files = glob(os.path.join(data_dir,'*.csv'))
 
     # concat all csvs into new csv
-    all_items= pd.concat([pd.read_csv(f, sep='|',
+    all_items= pd.concat([pd.read_csv(f, sep='\t',
         quoting=3) for f in csv_files], sort=False)
     
     all_items = all_items.drop_duplicates()
     all_items.to_csv(
         os.path.join(data_dir,"all_unique_items.csv"),
-        sep='|',
+        sep='\t',
         index=False,
         encoding='utf-8')
 
     # create sqlite db and populate w/ csvs with FTS on title and document_type
     for csv in glob(os.path.join(data_dir,'*.csv')):
         print(f"WRITING: {csv} to DB...")
-        subprocess.call(f"csvs-to-sqlite {csv} {os.path.join(data_dir,database)} -s $'|' -q 3" ,
+        subprocess.call(f"csvs-to-sqlite {csv} {os.path.join(data_dir,database)} -s $'\t' -q 3" ,
         shell=True)
 
    
