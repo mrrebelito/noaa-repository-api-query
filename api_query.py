@@ -42,7 +42,6 @@ class RepositoryQuery():
         self.fields = fields
         self.pid = ''
         self.collection_data = []   
-        self.all_collection_data = []
         self.api_url =  "https://repository.library.noaa.gov/fedora/export/download/collection/"
         self.date_params = {}
 
@@ -134,10 +133,39 @@ class RepositoryQuery():
         return self.collection_data
 
 
-    def filter_on_data(self, field,value):
-        pass
+    def search_field(self, field, search_value):
+        """ 
+        Search on collection data. 
 
+        Collection data must already be pull and stored in 
+        collection data instance variable. Exception will be thrown if not.
+
+        Simple search is performed on selected field. 
+        Search is converted to lower lower as is field to be searched on.
+
+        Parameters:
+            field: field to be searched on
+            search_value: value that searches against field
+
+        Returns:
+            list of dicts.
+        """
         
+        if len(self.collection_data) == 0:
+            raise Exception('No Collection data present. Make sure to pull data (single collection or entire dataset)')
+
+        result_list = []
+
+        for record in self.collection_data:
+            try:
+                if search_value.lower() in record[field].lower():
+                    result_list.append(record)
+            except KeyError:
+                raise Exception('field not present. Check your RepositoryQuery instance fields')
+
+        return result_list     
+
+
 class DataExporter():
     """Class used to export data."""
 
@@ -196,7 +224,6 @@ class DataExporter():
         make_dir(export_path)
 
         data = repository_query.get_all_collections_json()
-
         records = repository_query.filter_on_field(data)
 
         # calls api.get method  which call JSON API to retrieve all collections 

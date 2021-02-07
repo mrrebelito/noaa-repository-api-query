@@ -17,7 +17,7 @@ class Menu:
     Display a menu and respond to choices when run method is executed.
     """
     def __init__(self):
-        self.query = RepositoryQuery()
+        self.query = RepositoryQuery(default_fields)
         self.export = DataExporter()
         self.choices = {
                 "1": self.get_csv_of_collection_titles,
@@ -101,7 +101,7 @@ Query NOAA Resposistory JSON REST API
 
         # export all collections
         self.export.export_all_collections_as_csv(self.query,
-            self.query.get_all_ir_data())
+            self.query.get_all_collections_json())
 
         clear_screen()
         print('')
@@ -175,7 +175,18 @@ def date_format(date):
        print("Incorrect data format, should be YYYY-MM-DD")
 
 
+def update_columns():
+    """
+    Use function to update default column options within menu.py while
+    script is running.
+    """
+    pass
+
+
 
 if __name__ == "__main__":
-   m = Menu()
-   m.run()
+    default_fields =  ['PID', 'mods.title','mods.type_of_resource',
+    'fgs.createdDate','mods.sm_digital_object_identifier',
+    'mods.related_series']
+    m = Menu()
+    m.run()

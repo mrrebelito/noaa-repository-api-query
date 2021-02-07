@@ -255,6 +255,5 @@ def get_pid(value, pid_info):
 
 if __name__ == "__main__":
     s = StatsData('mods.sm_localcorpname',
-        pid_info={'OAR': '7','NWS':'6', 'NESDIS':'9',
-            'NOAA Cooperative Institutes':'23649'})
+        pid_info={'OAR': '7','NWS':'6', 'NESDIS':'9'})
   
