@@ -23,15 +23,7 @@ Query NOAA Resposistory JSON REST API
 
 You can also use ```api_query.py``` which ```menu.py``` uses as to retrieve data from the JSON API.
 
-### Generate Docker datasette image, Publish on Heroku
+### Publish on Heroku
 
-Use ```generate_db.py``` to generate a sqlite database of all NOAA IR holdings. 
-
-Columns for the DB can be customized```generate_db``` by using the code within ```api_query.py``.
-
-#### Publish SQLite db as Docker Datasette image or to Heroku
-
-Use CLI script ```publish.db``` to either:
-- publish Datasette Docker image;
-- publisher to Heroku
+Use ```publish.py``` to generate a sqlite database and publish of all NOAA IR holdings on Heroku.
 
