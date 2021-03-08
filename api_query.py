@@ -234,12 +234,12 @@ class DataExporter():
             deduped_collections_file)     
         
         delimiter = '\t'
-        write_dict_list_to_csv(records, collection_full_path, 
+        write_dict_list_to_csv(records, collections_full_path, 
             delimiter, repository_query.fields)
 
         # deduplicate files
         f = list(set(open(collections_full_path,encoding='utf-8').readlines()))
-        f.insert(0,delimter.join(repository_query.fields) + '\n')
+        f.insert(0,delimiter.join(repository_query.fields) + '\n')
         open(deduped_collections_full_path,'w', encoding='utf-8').writelines(f)
         os.remove(collections_full_path)
 
