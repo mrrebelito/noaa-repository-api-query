@@ -133,6 +133,34 @@ class RepositoryQuery():
         return self.collection_data
 
 
+    def multivalues_to_one(self, field,fieldname, delimiter=';'):
+        """
+        Convert multivalued column values into a single value, 
+        generating a new row, carrying over associated value to 
+        newly created row.
+        """
+
+        data = []
+
+        for item in self.collection_data:
+            if ';' in item[field]:
+                for multi_item in item[field].split(delimiter):
+                    data.append({
+                        'PID': item['PID'],
+                        fieldname : multi_item
+                        })
+            else:
+                data.append({
+                        'PID':
+                        item['PID'], 
+                        fieldname: item[field]
+                        })
+
+        self.collection_data = data
+
+        return self.collection_data
+
+
     def search_field(self, field, search_value):
         """ 
         Search on collection data. 
@@ -349,6 +377,6 @@ def write_dict_list_to_csv(dict_li,file_path, delimiter, fieldnames):
 if __name__ == "__main__":
     fields = [ 'PID', 'mods.title','mods.type_of_resource',
     'fgs.createdDate','mods.sm_digital_object_identifier',
-    'mods.related_series', 'mods.sm_localcorpname']
+    'mods.related_series','mods.ss_publishyear', 'mods.sm_localcorpname']
     q = RepositoryQuery(fields)
     de = DataExporter()
