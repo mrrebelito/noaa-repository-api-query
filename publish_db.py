@@ -27,11 +27,13 @@ def normalize_names(name):
     return name
 
 
-def write_metadata_json(database, repository_query):
-    """
-    Generate metadata.json file.
+def pid_to_link(value):
+    """transform pid to link"""
+    return value.replace('noaa:', 'https://repository.library.noaa.gov/view/noaa/')
 
-    """
+
+def write_metadata_json(database, repository_query):
+    """Generate metadata.json file."""
     
     tables = {}
     for name in repository_query.pid_dict.keys():
@@ -114,8 +116,12 @@ def new_db(ir_fields, app_name):
    
 if __name__ == "__main__":
     fields = [ 'PID', 'mods.title','mods.type_of_resource',
-    'fgs.createdDate','mods.sm_digital_object_identifier',
-    'mods.related_series']
+    'mods.sm_localcorpname','fgs.createdDate',
+    'mods.sm_digital_object_identifier','mods.related_series']
 
-    app_name = sys.argv[1]
+    try:
+        app_name = sys.argv[1]
+    except IndexError:
+        raise Exception('No Command line arg passed for app name.')
+   
     new_db(fields, app_name)
