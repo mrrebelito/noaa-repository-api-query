@@ -6,3 +6,6 @@ README.md
 requirements.txt
 *.json
 *.db
+*.xlsx
+*.json
+*.js

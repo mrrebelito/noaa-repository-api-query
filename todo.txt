@@ -1,3 +1,0 @@
-# concat multi IR json files together from inital requests
-
-helper function in get_all_collections_json?
