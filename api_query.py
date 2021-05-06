@@ -104,8 +104,6 @@ class RepositoryQuery():
         # call concat_json function
         self.collection_data = concat_json(api_url_info, full_url, self.date_params)
 
-        return self.collection_data
-
 
     def get_all_collections_json(self):
         """
@@ -129,11 +127,9 @@ class RepositoryQuery():
 
         # call concat_json function
         self.collection_data = concat_json(api_url_info, full_url, self.date_params)
-
-        return self.collection_data
         
 
-    def filter_on_field(self):
+    def filter_on_fields(self):
         """
         Filters JSON based on fields list passed into function.        
 
@@ -148,14 +144,22 @@ class RepositoryQuery():
                 field_iterator(doc, self.fields))
              
         self.collection_data = filtered_data
-        return self.collection_data
 
 
-    def multivalues_to_one(self, field,fieldname, delimiter=';'):
+    def convert_multivals_to_one(self, field, delimiter='~'):
         """
-        Convert multivalued column values into a single value, 
+        Converts multivalued column values into a single value, 
         generating a new row, carrying over associated value to 
         newly created row.
+
+        Default delimiter is a tilda symbol.
+
+        Parameters:
+            field: collection data field
+
+        Returns: 
+            Updates RepositoryQuery collection_data attribute
+            with new values.
         """
 
         data = []
@@ -165,18 +169,18 @@ class RepositoryQuery():
                 for multi_item in item[field].split(delimiter):
                     data.append({
                         'PID': item['PID'],
-                        fieldname : multi_item
+                        field : multi_item
                         })
             else:
                 data.append({
-                        'PID':
-                        item['PID'], 
-                        fieldname: item[field]
+                        'PID': item['PID'],
+                        field: item[field]
                         })
 
-        self.collection_data = data
+        # remove entries where fields equal ''    
+        data = [x for x in data if x[field] != '']
 
-        return self.collection_data
+        self.collection_data = data
 
 
     def search_field(self, field, search_value):
@@ -239,7 +243,7 @@ class DataExporter():
         make_dir(export_path)
         
         data = repository_query.get_single_collection_json(collection_pid)
-        records = repository_query.filter_on_field()
+        records = repository_query.filter_on_fields()
 
         collection_full_path = os.path.join(export_path, col_fname)
 
@@ -270,7 +274,7 @@ class DataExporter():
         make_dir(export_path)
 
         data = repository_query.get_all_collections_json()
-        records = repository_query.filter_on_field()
+        records = repository_query.filter_on_fields()
 
         # calls api.get method  which call JSON API to retrieve all collections 
         collections_file = "noaa_collections_" + self.date_info
@@ -299,11 +303,13 @@ def field_iterator(json_data, fields):
 
     data_dict = {}
 
+    delimiter = '~'
     for field in fields:
         if json_data.get(field) is None:
             data_dict.update({field: ''})
         elif isinstance(json_data.get(field), list): 
-            data_dict.update({field: clean_text(';'.join(json_data.get(field)))})
+            # delimter
+            data_dict.update({field: clean_text(delimiter.join(json_data.get(field)))})
         else:
             data_dict.update({field: clean_text(json_data.get(field))})
 
@@ -345,7 +351,7 @@ def get_row_total(api_url, pid):
     return data['response']['numFound']
 
 
-def iterate_rows(api_url, col_pid, total, row_num=3000): 
+def iterate_rows(api_url, col_pid, total, row_num=5000): 
     """
     If total number of rows is less than 
     chunk val a list of URLS is generated with 
